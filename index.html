@@ -496,47 +496,96 @@
     const INITIAL_TRIPS = [
       {
         id: "trip_osaka",
-        title: "오사카 맛집 & 힐링 여행",
+        title: "오사카 & 교토 4박 5일 힐링 투어",
         destination: "일본 오사카",
         flag: "🇯🇵",
         currency: "JPY",
         exchangeRate: 9.085,
-        startDate: "2026-10-03",
+        startDate: "2026-10-04",
         endDate: "2026-10-08",
-        totalBudget: 1500000,
+        totalBudget: 1800000,
         participants: ["나 (작성자)", "민우", "수진"],
         itinerary: [
-          { id: "1", day: 1, time: "11:30", title: "간사이 공항 도착 & 라피트 탑승", cat: "transport", cost: 1490, memo: "난바역 직행 교환권", query: "Kansai Airport Osaka" },
-          { id: "2", day: 1, time: "13:30", title: "이치란 라멘 도톤보리 본관 점심", cat: "food", cost: 1480, memo: "비밀소스 4배, 차슈 추가", query: "Ichiran Dotonbori Main Building Osaka" },
-          { id: "3", day: 1, time: "15:30", title: "도톤보리 거리 산책 & 글리코상 포토존", cat: "spot", cost: 0, memo: "오사카 랜드마크 인증샷", query: "Glico Sign Dotonbori Osaka" },
-          { id: "4", day: 1, time: "19:00", title: "쿠시카츠 다루마 도톤보리 & 글리코상", cat: "food", cost: 3200, memo: "꼬치 모둠 세트 + 생맥주", query: "Kushikatsu Daruma Dotonbori" },
-          { id: "5", day: 2, time: "10:30", title: "오사카성 천수각 & 고자부네 뱃놀이", cat: "spot", cost: 600, memo: "다니마치선 2정거장(4분)! 주유패스 무료 입장", query: "Osaka Castle" },
-          { id: "6", day: 2, time: "12:30", title: "텐진바시스지 상점가 & 하루코마 스시 점심", cat: "food", cost: 2200, memo: "일본 최장 상점가 탐방, 가성비 1등 스시 & 나카무라야 고로케", query: "Harukoma Sushi Tenjinbashi Osaka" },
-          { id: "7", day: 2, time: "14:30", title: "키타하마 나카노시마 공원 & 모토 커피(Moto Coffee)", cat: "food", cost: 850, memo: "숙소 도보 7분, 중앙공회당 리버뷰 테라스에서 디저트 힐링", query: "Moto Coffee Kitahama Osaka" },
-          { id: "8", day: 2, time: "16:00", title: "Apartment Hotel The Espasion Umeda East 체크인", cat: "stay", cost: 0, memo: "체크인 16:00 (체크아웃 10:00 이전) · 결제완료(320,038원) · 짐정리 및 휴식", query: "1-chōme-12-16 Tenjinbashi Apartment Hotel The Espasion Umeda East, 오사카" },
-          { id: "9", day: 2, time: "18:00", title: "우메다 스카이빌딩 공중정원 일몰 & 야경", cat: "spot", cost: 1500, memo: "숙소 앞 미나미모리마치역→히가시우메다역 1정거장(2분)! 360도 루프탑 야경", query: "Umeda Sky Building Osaka" },
-          { id: "10", day: 2, time: "19:40", title: "오코노미야키 키지(きじ) 우메다 스카이빌딩점 디너", cat: "food", cost: 1800, memo: "지하 타키미코지 식당가, 모단야키 + 시원한 생맥주", query: "Kiji Umeda Sky Building Osaka" },
-          { id: "11", day: 2, time: "21:00", title: "헵파이브(HEP FIVE) 대관람차 탑승 & 도심 쇼핑", cat: "spot", cost: 600, memo: "도심 속 붉은 관람차 야경, 돈키호테 우메다 본점", query: "HEP FIVE Ferris Wheel Osaka" },
-          { id: "12", day: 3, time: "08:30", title: "유니버설 스튜디오 재팬 (USJ)", cat: "spot", cost: 8900, memo: "슈퍼 닌텐도 월드 확약권", query: "Universal Studios Japan" }
+          // Day 1: 10/4 (토) - 오사카 입국, 숙소 짐보관, 키타하마 & 우메다 도심
+          { id: "1", day: 1, time: "11:30", title: "간사이 국제공항(KIX) 도착 & 특급열차 탑승", cat: "transport", cost: 1490, memo: "난카이 라피트 또는 JR 하루카 특급", query: "Kansai Airport Osaka" },
+          { id: "2", day: 1, time: "13:00", title: "에스파시온 우메다 이스트 숙소 도착 & 짐 보관", cat: "stay", cost: 0, memo: "텐진바시 1초메 · 16:00 체크인 전 캐리어 사전 보관", query: "1-chōme-12-16 Tenjinbashi Apartment Hotel The Espasion Umeda East, 오사카" },
+          { id: "3", day: 1, time: "13:30", title: "텐진바시스지 상점가 & 하루코마 스시 점심", cat: "food", cost: 2200, memo: "가성비 극강 두툼한 스시 본점 & 나카무라야 100엔 고로케", query: "Harukoma Sushi Tenjinbashi Osaka" },
+          { id: "4", day: 1, time: "14:40", title: "키타하마 나카노시마 공원 & 모토 커피(Moto Coffee)", cat: "food", cost: 850, memo: "숙소 도보 7분, 중앙공회당 리버뷰 테라스에서 디저트 힐링", query: "Moto Coffee Kitahama Osaka" },
+          { id: "5", day: 1, time: "16:00", title: "Apartment Hotel The Espasion Umeda East 정식 체크인", cat: "stay", cost: 0, memo: "체크인 16:00 (체크아웃 10:00 이전) · 4박 결제완료(320,038원) · 짐정리 & 휴식", query: "1-chōme-12-16 Tenjinbashi Apartment Hotel The Espasion Umeda East, 오사카" },
+          { id: "6", day: 1, time: "18:00", title: "우메다 스카이빌딩 공중정원 360도 루프탑 일몰 & 야경", cat: "spot", cost: 1500, memo: "숙소 앞 미나미모리마치역→히가시우메다역 1정거장(2분)! 야경 1등 명소", query: "Umeda Sky Building Osaka" },
+          { id: "7", day: 1, time: "19:40", title: "오코노미야키 키지(きじ) 우메다 스카이빌딩점 디너", cat: "food", cost: 1800, memo: "지하 타키미코지 식당가, 모단야키 + 시원한 나마비루", query: "Kiji Umeda Sky Building Osaka" },
+          { id: "8", day: 1, time: "21:00", title: "헵파이브(HEP FIVE) 대관람차 탑승 & 돈키호테 쇼핑", cat: "spot", cost: 600, memo: "도심 속 붉은 관람차 야경 감상 & 한큐/돈키호테 우메다 본점", query: "HEP FIVE Ferris Wheel Osaka" },
+
+          // Day 2: 10/5 (일) - 유니버설 스튜디오 재팬 (USJ) 올데이
+          { id: "9", day: 2, time: "08:00", title: "JR 오사카텐만구역 탑승 → 유니버설시티역 이동", cat: "transport", cost: 210, memo: "숙소 도보 4분 역에서 JR 환승 1회로 25분 만에 도착!", query: "Universal City Station Osaka" },
+          { id: "10", day: 2, time: "08:45", title: "유니버설 스튜디오 재팬 (USJ) 입장 & 닌텐도 월드", cat: "spot", cost: 8900, memo: "슈퍼 닌텐도 월드 확약권 & 마리오 카트 오픈런", query: "Universal Studios Japan" },
+          { id: "11", day: 2, time: "12:30", title: "해리포터 앤드 더 포비든 저니 & 쓰리 브룸스틱스 점심", cat: "food", cost: 2500, memo: "버터맥주 & 로스트비프 플래터", query: "Three Broomsticks Universal Studios Japan" },
+          { id: "12", day: 2, time: "15:00", title: "더 플라잉 다이너소어 & 헐리우드 드림 라이드", cat: "spot", cost: 0, memo: "스릴 넘치는 대표 롤러코스터 만끽", query: "Universal Studios Japan" },
+          { id: "13", day: 2, time: "19:30", title: "유니버설 시티워크 디너 후 숙소 복귀", cat: "food", cost: 2000, memo: "타코야키 파크 & 텐진바시 로컬 이자카야 맥주 한잔", query: "Universal CityWalk Osaka" },
+
+          // Day 3: 10/6 (월) - 교토(Kyoto) 고즈넉한 감성 당일치기 투어
+          { id: "14", day: 3, time: "09:00", title: "미나미모리마치역 한큐 직결 탑승 → 교토 가와라마치 이동", cat: "transport", cost: 410, memo: "숙소 바로 앞 지하철에서 한큐 교토선 45분 직통 연결!", query: "Kyoto Kawaramachi Station" },
+          { id: "15", day: 3, time: "10:00", title: "기요미즈데라(청수사) & 산넨자카·니넨자카 전통 거리", cat: "spot", cost: 400, memo: "절벽 위 웅장한 목조 사찰 & 고즈넉한 교토 골목 산책", query: "Kiyomizu-dera Kyoto" },
+          { id: "16", day: 3, time: "12:30", title: "기온 거리 전통 소바 & 장어덮밥(우나기) 점심", cat: "food", cost: 2500, memo: "교토 전통 가옥이 늘어선 기온 거리 미식", query: "Gion Kyoto" },
+          { id: "17", day: 3, time: "14:30", title: "아라시야마 치쿠린(대나무숲) & 도게츠교 풍경 감상", cat: "spot", cost: 250, memo: "피톤치드 가득한 대나무숲 산책길 & 노노미야 신사", query: "Arashiyama Bamboo Grove Kyoto" },
+          { id: "18", day: 3, time: "16:30", title: "아라시야마 % 아라비카(응커피) 강변 테라스 라떼", cat: "food", cost: 650, memo: "카모강변 바라보며 인생 라떼 한잔", query: "Arabica Kyoto Arashiyama" },
+          { id: "19", day: 3, time: "19:00", title: "오사카 숙소 복귀 & 텐진바시스지 로컬 야키니쿠 저녁", cat: "food", cost: 3500, memo: "현지인 단골 숯불 소고기 구이 & 생맥주", query: "Tenjinbashisuji Shopping Street" },
+
+          // Day 4: 10/7 (화) - 오사카성 역사 투어 & 난바·도톤보리 먹방 & 하루카스 300 야경
+          { id: "20", day: 4, time: "10:00", title: "오사카성 천수각 & 해자 위 황금 고자부네 뱃놀이", cat: "spot", cost: 600, memo: "숙소 앞 미나미모리마치역에서 2정거장(4분)! 주유패스 무료 입장", query: "Osaka Castle" },
+          { id: "21", day: 4, time: "12:30", title: "규카츠 모토무라 난바점 오픈런 점심", cat: "food", cost: 2600, memo: "개인 화로에 구워먹는 살치살 규카츠 정식", query: "Gyukatsu Motomura Namba Osaka" },
+          { id: "22", day: 4, time: "14:00", title: "신사이바시스지 & 아메리카무라 쇼핑 투어", cat: "shopping", cost: 0, memo: "패션 브랜드, 캐릭터 샵, 빈티지 숍 탐방", query: "Shinsaibashi-suji Shopping Street" },
+          { id: "23", day: 4, time: "16:30", title: "도톤보리 글리코상 인증샷 & 앗치치혼포 타코야키", cat: "spot", cost: 700, memo: "오사카 대표 포토존 시그니처 포즈 & 파 듬뿍 타코야키", query: "Glico Sign Dotonbori Osaka" },
+          { id: "24", day: 4, time: "18:30", title: "아베노 하루카스 300 전망대 300m 통유리 야경", cat: "spot", cost: 1800, memo: "간사이 최고층 빌딩에서 내려다보는 환상적인 파노라마 야경", query: "Abeno Harukas 300" },
+          { id: "25", day: 4, time: "20:30", title: "신세카이 쿠시카츠 다루마 본점 & 츠텐카쿠 야경", cat: "food", cost: 3200, memo: "원조 바삭한 꼬치튀김 모둠 + 도테야키(소힘줄조림)", query: "Kushikatsu Daruma Shinsekai Osaka" },
+
+          // Day 5: 10/8 (수) - 체크아웃(10시 이전), 텐진바시 브런치, 면세 쇼핑 & 귀국
+          { id: "26", day: 5, time: "09:30", title: "숙소 체크아웃 완료 (오전 10시 이전 준수!)", cat: "stay", cost: 0, memo: "Apartment Hotel The Espasion Umeda East 체크아웃 완료", query: "1-chōme-12-16 Tenjinbashi Apartment Hotel The Espasion Umeda East, 오사카" },
+          { id: "27", day: 5, time: "10:00", title: "텐진바시스지 상점가 모닝 카페 브런치 & 커피", cat: "food", cost: 1000, memo: "여유로운 모닝 토스트 세트 & 핸드드립 커피", query: "Tenjinbashisuji Shopping Street" },
+          { id: "28", day: 5, time: "11:30", title: "마지막 면세 쇼핑 (돈키호테 / 드럭스토어)", cat: "shopping", cost: 8000, memo: "과자, 젤리, 파스, 화장품 등 여행 기념품 쇼핑", query: "Don Quijote Umeda Osaka" },
+          { id: "29", day: 5, time: "13:30", title: "간사이 공항행 특급열차(라피트/하루카) 탑승", cat: "transport", cost: 1490, memo: "공항으로 편안하게 이동", query: "Kansai Airport Station" },
+          { id: "30", day: 5, time: "15:00", title: "간사이 국제공항(KIX) 도착, 면세점 쇼핑 & 출국", cat: "transport", cost: 0, memo: "도쿄바나나, 로이즈 초콜릿 구매 후 한국 귀국", query: "Kansai Airport Osaka" }
         ],
         expenses: [
-          { id: "e1", day: 1, date: "2026-10-03", title: "라피트 왕복 티켓 (3인)", cat: "transport", local: 4470, base: 40610, pay: "card", payer: "나 (작성자)" },
-          { id: "e2", day: 1, date: "2026-10-03", title: "이치란 라멘 3인 점심", cat: "food", local: 4440, base: 40337, pay: "cash", payer: "민우" },
-          { id: "e3", day: 1, date: "2026-10-03", title: "편의점 간식 & 맥주 (로손)", cat: "food", local: 1560, base: 14172, pay: "transit_card", payer: "수진" },
-          { id: "e4", day: 1, date: "2026-10-03", title: "쿠시카츠 다루마 저녁", cat: "food", local: 9800, base: 89033, pay: "card", payer: "나 (작성자)" },
-          { id: "e_hotel", day: 2, date: "2026-10-04", title: "Apartment Hotel The Espasion Umeda East (숙소 결제완료)", cat: "stay", local: 35227, base: 320038, pay: "card", payer: "나 (작성자)" },
-          { id: "e5", day: 2, date: "2026-10-04", title: "하루코마 스시 점심 & 고로케 (3인)", cat: "food", local: 6600, base: 59961, pay: "cash", payer: "민우" },
-          { id: "e_cafe", day: 2, date: "2026-10-04", title: "모토 커피(Moto Coffee) 강변 테라스 디저트", cat: "food", local: 2550, base: 23167, pay: "card", payer: "수진" },
-          { id: "e_kiji", day: 2, date: "2026-10-04", title: "오코노미야키 키지(きじ) 스카이빌딩점 저녁", cat: "food", local: 5400, base: 49059, pay: "card", payer: "나 (작성자)" }
+          // Day 1
+          { id: "e_hotel", day: 1, date: "2026-10-04", title: "Apartment Hotel The Espasion Umeda East (4박 전일정 결제완료)", cat: "stay", local: 35227, base: 320038, pay: "card", payer: "나 (작성자)" },
+          { id: "e1", day: 1, date: "2026-10-04", title: "공항 특급열차 티켓 (3인)", cat: "transport", local: 4470, base: 40610, pay: "card", payer: "나 (작성자)" },
+          { id: "e2", day: 1, date: "2026-10-04", title: "하루코마 스시 점심 & 고로케 (3인)", cat: "food", local: 6600, base: 59961, pay: "cash", payer: "민우" },
+          { id: "e3", day: 1, date: "2026-10-04", title: "모토 커피(Moto Coffee) 강변 테라스", cat: "food", local: 2550, base: 23167, pay: "card", payer: "수진" },
+          { id: "e4", day: 1, date: "2026-10-04", title: "오코노미야키 키지(きじ) 스카이빌딩 저녁", cat: "food", local: 5400, base: 49059, pay: "card", payer: "나 (작성자)" },
+          // Day 2
+          { id: "e5", day: 2, date: "2026-10-05", title: "USJ 1일 스튜디오 패스 입장권 (3인)", cat: "spot", local: 26700, base: 242570, pay: "card", payer: "나 (작성자)" },
+          { id: "e6", day: 2, date: "2026-10-05", title: "USJ 쓰리 브룸스틱스 해리포터 점심 (3인)", cat: "food", local: 7500, base: 68138, pay: "card", payer: "민우" },
+          { id: "e7", day: 2, date: "2026-10-05", title: "유니버설 시티워크 저녁 & 맥주 (3인)", cat: "food", local: 6000, base: 54510, pay: "card", payer: "수진" },
+          // Day 3
+          { id: "e8", day: 3, date: "2026-10-06", title: "한큐 전철 교토 왕복 교통비 (3인)", cat: "transport", local: 2460, base: 22349, pay: "transit_card", payer: "나 (작성자)" },
+          { id: "e9", day: 3, date: "2026-10-06", title: "기요미즈데라(청수사) 입장료 (3인)", cat: "spot", local: 1200, base: 10902, pay: "cash", payer: "민우" },
+          { id: "e10", day: 3, date: "2026-10-06", title: "교토 기온 전통 소바 & 장어덮밥 점심", cat: "food", local: 7500, base: 68138, pay: "card", payer: "나 (작성자)" },
+          { id: "e11", day: 3, date: "2026-10-06", title: "아라시야마 % 아라비카 응커피 (3인)", cat: "food", local: 1950, base: 17716, pay: "card", payer: "수진" },
+          // Day 4
+          { id: "e12", day: 4, date: "2026-10-07", title: "오사카성 천수각 & 고자부네 뱃놀이 (3인)", cat: "spot", local: 1800, base: 16353, pay: "card", payer: "나 (작성자)" },
+          { id: "e13", day: 4, date: "2026-10-07", title: "규카츠 모토무라 난바점 점심 (3인)", cat: "food", local: 7800, base: 70863, pay: "card", payer: "민우" },
+          { id: "e14", day: 4, date: "2026-10-07", title: "도톤보리 앗치치혼포 타코야키 & 간식", cat: "food", local: 2100, base: 19079, pay: "cash", payer: "수진" },
+          { id: "e15", day: 4, date: "2026-10-07", title: "하루카스 300 전망대 입장권 (3인)", cat: "spot", local: 5400, base: 49059, pay: "card", payer: "나 (작성자)" },
+          { id: "e16", day: 4, date: "2026-10-07", title: "신세카이 쿠시카츠 다루마 저녁 (3인)", cat: "food", local: 9600, base: 87216, pay: "card", payer: "민우" },
+          // Day 5
+          { id: "e17", day: 5, date: "2026-10-08", title: "텐진바시 모닝 카페 브런치 (3인)", cat: "food", local: 3000, base: 27255, pay: "card", payer: "수진" },
+          { id: "e18", day: 5, date: "2026-10-08", title: "귀국 특급열차 라피트 편도 티켓 (3인)", cat: "transport", local: 4470, base: 40610, pay: "card", payer: "나 (작성자)" }
         ],
         places: [
-          { id: "p_hotel", name: "Apartment Hotel The Espasion Umeda East", cat: "stay", rating: "4.8", menu: "체크인 16:00 / 체크아웃 10:00 이전", query: "1-chōme-12-16 Tenjinbashi Apartment Hotel The Espasion Umeda East, 오사카" },
+          { id: "p_hotel", name: "Apartment Hotel The Espasion Umeda East", cat: "stay", rating: "4.8", menu: "체크인 16:00 / 체크아웃 10:00 이전 (4박 숙소)", query: "1-chōme-12-16 Tenjinbashi Apartment Hotel The Espasion Umeda East, 오사카" },
           { id: "p_harukoma", name: "하루코마 스시 본점 (텐진바시)", cat: "food", rating: "4.6", menu: "가성비 극강 두툼한 참치·연어·장어 초밥", query: "Harukoma Sushi Tenjinbashi Osaka" },
           { id: "p_motocoffee", name: "모토 커피 (키타하마 강변)", cat: "food", rating: "4.7", menu: "중앙공회당 뷰 테라스 & 시그니처 티라미수", query: "Moto Coffee Kitahama Osaka" },
           { id: "p_kiji", name: "오코노미야키 키지 (우메다 스카이빌딩)", cat: "food", rating: "4.6", menu: "바삭촉촉 명품 모단야키 & 야키소바", query: "Kiji Umeda Sky Building Osaka" },
           { id: "p4", name: "우메다 스카이빌딩 공중정원", cat: "spot", rating: "4.7", menu: "300m 루프탑 360도 도심 야경", query: "Umeda Sky Building Osaka" },
-          { id: "p5", name: "오사카성 천수각 & 고자부네 뱃놀이", cat: "spot", rating: "4.6", menu: "성벽 해자 위 황금 배 유람", query: "Osaka Castle" },
-          { id: "p6", name: "헵파이브(HEP FIVE) 대관람차", cat: "spot", rating: "4.5", menu: "도심 한복판 붉은 관람차", query: "HEP FIVE Ferris Wheel Osaka" }
+          { id: "p_usj", name: "유니버설 스튜디오 재팬 (USJ)", cat: "spot", rating: "4.9", menu: "마리오 카트 & 해리포터 포비든 저니", query: "Universal Studios Japan" },
+          { id: "p_kiyomizu", name: "교토 기요미즈데라 (청수사)", cat: "spot", rating: "4.8", menu: "유네스코 세계문화유산 목조 절벽 사찰", query: "Kiyomizu-dera Kyoto" },
+          { id: "p_arashiyama", name: "교토 아라시야마 치쿠린 & 도게츠교", cat: "spot", rating: "4.7", menu: "피톤치드 대나무숲 & % 아라비카 응커피", query: "Arashiyama Bamboo Grove Kyoto" },
+          { id: "p_osaka_castle", name: "오사카성 천수각 & 고자부네 뱃놀이", cat: "spot", rating: "4.6", menu: "성벽 해자 위 황금 배 유람", query: "Osaka Castle" },
+          { id: "p_motomura", name: "규카츠 모토무라 난바점", cat: "food", rating: "4.8", menu: "화로에 구워먹는 명품 살치살 규카츠", query: "Gyukatsu Motomura Namba Osaka" },
+          { id: "p_glico", name: "도톤보리 글리코상 & 앗치치혼포", cat: "spot", rating: "4.7", menu: "시그니처 포토존 & 파 듬뿍 타코야키", query: "Glico Sign Dotonbori Osaka" },
+          { id: "p_harukas", name: "아베노 하루카스 300 전망대", cat: "spot", rating: "4.8", menu: "지상 300m 통유리 파노라마 야경", query: "Abeno Harukas 300" },
+          { id: "p_daruma", name: "쿠시카츠 다루마 신세카이 본점", cat: "food", rating: "4.5", menu: "원조 꼬치튀김 & 소힘줄 도테야키", query: "Kushikatsu Daruma Shinsekai Osaka" }
         ]
       },
       {
@@ -565,7 +614,7 @@
     let selectedExpenseCat = "all";
 
     function loadAllTrips() {
-      const saved = localStorage.getItem("travellog_multi_trips_v5");
+      const saved = localStorage.getItem("travellog_multi_trips_v6");
       const activeId = localStorage.getItem("travellog_active_trip_id");
       if (saved) {
         try {
@@ -586,7 +635,7 @@
     }
 
     function saveAllTrips() {
-      localStorage.setItem("travellog_multi_trips_v5", JSON.stringify(trips));
+      localStorage.setItem("travellog_multi_trips_v6", JSON.stringify(trips));
       localStorage.setItem("travellog_active_trip_id", currentTripId);
     }
 
