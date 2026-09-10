@@ -213,20 +213,44 @@
       <div id="placesCardList"></div>
     </div>
 
-    <!-- TAB 4: ANALYTICS & SETTLEMENT (정산 & 통계) -->
+    <!-- TAB 4: ANALYTICS (지출 요약 & 날짜별 요약) -->
     <div id="tab-analytics" class="content-area tab-content">
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <span style="font-size:13px; font-weight:800; color:#0f172a;">👥 친구와 여행 정산 (더치페이)</span>
-          <button onclick="openShareModal()" style="font-size:11px; font-weight:700; color:#2563eb; background:#eff6ff; border:none; padding:4px 8px; border-radius:10px; cursor:pointer;">카톡 전송</button>
+      <!-- 1. 총 지출 & 예산 현황 요약 카드 -->
+      <div class="card" style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color:#fff; border:none; padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:12px; color:#94a3b8; font-weight:700;">💳 총 지출 요약</span>
+          <span class="badge" style="background:rgba(255,255,255,0.15); color:#fff; font-size:11px;" id="analyticsPercentBadge">0% 사용</span>
         </div>
-        <div id="participantsBadges" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;"></div>
-        <div id="settlementSummaryBox" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:12px; font-size:12px;"></div>
+        <div style="font-size:24px; font-weight:900; color:#38bdf8;" id="analyticsTotalSpent">0원</div>
+        <div style="font-size:12px; color:#cbd5e1; margin-top:6px; display:flex; justify-content:space-between;">
+          <span>총 예산: <b id="analyticsTotalBudget">0원</b></span>
+          <span>남은 예산: <b id="analyticsRemainingBudget" style="color:#4ade80;">0원</b></span>
+        </div>
+        <div style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px; overflow:hidden; margin-top:10px;">
+          <div id="analyticsBudgetBar" style="width:0%; height:100%; background:#38bdf8; border-radius:3px; transition:width 0.3s;"></div>
+        </div>
       </div>
 
+      <!-- 2. 날짜별 지출 요약 (Day-by-Day Summary) -->
       <div class="card">
-        <div style="font-size:13px; font-weight:800; color:#0f172a; margin-bottom:8px;">📊 카테고리별 지출 요약</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div style="font-size:14px; font-weight:800; color:#0f172a;">📅 날짜별 지출 요약</div>
+          <span style="font-size:11px; font-weight:700; color:#2563eb;" id="analyticsDailyAvg">일평균: 0원</span>
+        </div>
+        <p style="font-size:11px; color:#64748b; margin:-4px 0 10px;">날짜 카드를 누르면 해당 일자 가계부로 바로 이동합니다.</p>
+        <div id="dailySummaryList" style="font-size:12px;"></div>
+      </div>
+
+      <!-- 3. 카테고리별 지출 비중 -->
+      <div class="card">
+        <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:10px;">📊 카테고리별 지출 비중</div>
         <div id="categoryBreakdownList" style="font-size:12px;"></div>
+      </div>
+
+      <!-- 4. 결제 수단별 분석 (카드 vs 현금) -->
+      <div class="card">
+        <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:10px;">💳 결제 수단별 비중</div>
+        <div id="paymentMethodBreakdownList" style="font-size:12px;"></div>
       </div>
     </div>
 
@@ -249,7 +273,7 @@
       </button>
       <button class="nav-btn" onclick="switchTab('analytics')" id="nav-analytics">
         <span class="icon">📊</span>
-        <span>정산·통계</span>
+        <span>지출요약</span>
       </button>
     </div>
 
@@ -319,15 +343,9 @@
             </select>
           </div>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <div class="form-group">
-            <label class="form-label">해당 일자 (Day)</label>
-            <select id="expInputDay" class="form-input"></select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">결제자</label>
-            <select id="expInputPayer" class="form-input"></select>
-          </div>
+        <div class="form-group">
+          <label class="form-label">해당 일자 (Day)</label>
+          <select id="expInputDay" class="form-input"></select>
         </div>
         <button type="submit" class="btn-submit">가계부에 저장하기</button>
       </form>
@@ -889,67 +907,103 @@
     }
 
     // --- TAB 4: ANALYTICS ---
+    // --- TAB 4: EXPENSE & DAY-BY-DAY ANALYTICS ---
     function renderAnalytics(trip) {
       const totalBase = (trip.expenses || []).reduce((sum, e) => sum + (e.base || 0), 0);
-      const count = (trip.participants || []).length || 1;
-      const perPerson = Math.round(totalBase / count);
+      const totalBudget = trip.totalBudget || 1800000;
+      const remaining = totalBudget - totalBase;
+      const spentPct = Math.min(100, Math.round((totalBase / totalBudget) * 100)) || 0;
+      const daysCount = getDaysCount(trip);
+      const dailyAvg = Math.round(totalBase / Math.max(1, daysCount));
 
-      let pBadges = '';
-      (trip.participants || []).forEach(p => {
-        pBadges += `<span class="badge badge-green">${p}</span>`;
-      });
-      pBadges += `<button onclick="addParticipant()" style="font-size:11px; padding:2px 8px; background:#f1f5f9; border:none; border-radius:10px; cursor:pointer;">+ 친구추가</button>`;
-      document.getElementById("participantsBadges").innerHTML = pBadges;
+      // 1. Overall Budget Summary
+      document.getElementById("analyticsTotalSpent").textContent = `${totalBase.toLocaleString()}원`;
+      document.getElementById("analyticsTotalBudget").textContent = `${totalBudget.toLocaleString()}원`;
+      document.getElementById("analyticsRemainingBudget").textContent = `${remaining.toLocaleString()}원`;
+      document.getElementById("analyticsPercentBadge").textContent = `${spentPct}% 사용`;
+      document.getElementById("analyticsBudgetBar").style.width = `${spentPct}%`;
+      document.getElementById("analyticsBudgetBar").style.background = spentPct > 90 ? '#ef4444' : '#38bdf8';
+      document.getElementById("analyticsDailyAvg").textContent = `일평균: ${dailyAvg.toLocaleString()}원`;
 
-      const paidMap = {};
-      (trip.participants || []).forEach(p => paidMap[p] = 0);
-      (trip.expenses || []).forEach(e => {
-        const payer = e.payer || trip.participants[0];
-        paidMap[payer] = (paidMap[payer] || 0) + (e.base || 0);
-      });
+      // 2. Day-by-Day Summary
+      let dailyHtml = '';
+      for (let d = 1; d <= daysCount; d++) {
+        const dExps = (trip.expenses || []).filter(e => e.day === d);
+        const dBaseSum = dExps.reduce((sum, e) => sum + (e.base || 0), 0);
+        const dLocalSum = dExps.reduce((sum, e) => sum + (e.local || 0), 0);
+        const dPct = totalBase > 0 ? Math.round((dBaseSum / totalBase) * 100) : 0;
+        const dStr = getDayStr(trip, d);
 
-      let summaryHtml = `
-        <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-weight:700;">
-          <span>1인당 부담금 (${count}명):</span>
-          <span style="color:#15803d; font-size:14px; font-weight:800;">${perPerson.toLocaleString()}원</span>
-        </div>
-        <div style="border-top:1px solid #dcfce7; padding-top:6px;">
-      `;
-      (trip.participants || []).forEach(p => {
-        const paid = paidMap[p] || 0;
-        const diff = paid - perPerson;
-        if (diff > 0) {
-          summaryHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>· <b>${p}</b> (${paid.toLocaleString()}원 결제)</span><span style="color:#2563eb; font-weight:700;">+${diff.toLocaleString()}원 받을 돈</span></div>`;
-        } else if (diff < 0) {
-          summaryHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>· <b>${p}</b> (${paid.toLocaleString()}원 결제)</span><span style="color:#dc2626; font-weight:700;">-${Math.abs(diff).toLocaleString()}원 보낼 돈</span></div>`;
-        } else {
-          summaryHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>· <b>${p}</b></span><span style="color:#94a3b8;">정산 완료 (0원)</span></div>`;
-        }
-      });
-      summaryHtml += '</div>';
-      document.getElementById("settlementSummaryBox").innerHTML = summaryHtml;
+        dailyHtml += `
+          <div onclick="jumpToExpenseDay(${d})" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px 12px; margin-bottom:8px; cursor:pointer;" title="가계부에서 이 날짜 보기">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-weight:800; font-size:13px; color:#0f172a;">${dStr}</span>
+              <div style="text-align:right;">
+                <span style="font-weight:800; font-size:13px; color:#2563eb;">${dBaseSum.toLocaleString()}원</span>
+                <span style="font-size:11px; color:#64748b; margin-left:4px;">(${dLocalSum.toLocaleString()} ${trip.currency})</span>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; margin-bottom:4px;">
+              <span>총 ${dExps.length}건 지출</span>
+              <span>전체의 ${dPct}%</span>
+            </div>
+            <div style="height:5px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
+              <div style="width:${dPct}%; height:100%; background:#2563eb;"></div>
+            </div>
+          </div>
+        `;
+      }
+      document.getElementById("dailySummaryList").innerHTML = dailyHtml || '<div style="color:#94a3b8; text-align:center; padding:10px;">지출 내역이 없습니다.</div>';
 
-      const catTotals = { food: 0, transport: 0, spot: 0, shopping: 0, stay: 0, other: 0 };
+      // 3. Category Breakdown
+      const catTotals = { food: 0, stay: 0, transport: 0, spot: 0, shopping: 0, other: 0 };
       (trip.expenses || []).forEach(e => { catTotals[e.cat] = (catTotals[e.cat] || 0) + (e.base || 0); });
       let catHtml = '';
-      const catNames = { food: '🍱 식비', transport: '🚇 교통', spot: '🎟️ 관광', shopping: '🛍️ 쇼핑', stay: '🏨 숙박', other: '💡 기타' };
-      for (const [k, v] of Object.entries(catTotals)) {
+      const catNames = { food: '🍱 식비', stay: '🏨 숙박', transport: '🚇 교통', spot: '🎟️ 관광', shopping: '🛍️ 쇼핑', other: '💡 기타' };
+      const catColors = { food: '#f97316', stay: '#8b5cf6', transport: '#06b6d4', spot: '#10b981', shopping: '#ec4899', other: '#64748b' };
+      
+      const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+      for (const [k, v] of sortedCats) {
         if (v > 0) {
           const pct = Math.round((v / (totalBase || 1)) * 100);
           catHtml += `
-            <div style="margin-bottom:6px;">
-              <div style="display:flex; justify-content:space-between; margin-bottom:2px; font-weight:700;">
+            <div style="margin-bottom:8px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:3px; font-weight:700; font-size:12px;">
                 <span>${catNames[k] || k}</span>
                 <span>${v.toLocaleString()}원 (${pct}%)</span>
               </div>
               <div style="height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
-                <div style="width:${pct}%; height:100%; background:#2563eb;"></div>
+                <div style="width:${pct}%; height:100%; background:${catColors[k] || '#2563eb'};"></div>
               </div>
             </div>
           `;
         }
       }
-      document.getElementById("categoryBreakdownList").innerHTML = catHtml || '<span style="color:#94a3b8;">지출 내역이 없습니다.</span>';
+      document.getElementById("categoryBreakdownList").innerHTML = catHtml || '<div style="color:#94a3b8; text-align:center; padding:10px;">지출 내역이 없습니다.</div>';
+
+      // 4. Payment Method Breakdown
+      const payTotals = { card: 0, cash: 0, transit_card: 0 };
+      (trip.expenses || []).forEach(e => { payTotals[e.pay] = (payTotals[e.pay] || 0) + (e.base || 0); });
+      const payNames = { card: '💳 카드/트래블로그', cash: '💵 현금', transit_card: '🚃 교통카드' };
+      let payHtml = '';
+      for (const [k, v] of Object.entries(payTotals)) {
+        if (v > 0) {
+          const pct = Math.round((v / (totalBase || 1)) * 100);
+          payHtml += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f1f5f9;">
+              <span style="font-weight:700; font-size:12px; color:#334155;">${payNames[k] || k}</span>
+              <span style="font-weight:800; font-size:12px; color:#0f172a;">${v.toLocaleString()}원 <span style="font-size:11px; color:#64748b; font-weight:500;">(${pct}%)</span></span>
+            </div>
+          `;
+        }
+      }
+      document.getElementById("paymentMethodBreakdownList").innerHTML = payHtml || '<div style="color:#94a3b8; text-align:center; padding:10px;">지출 내역이 없습니다.</div>';
+    }
+
+    function jumpToExpenseDay(day) {
+      selectedExpenseDay = day;
+      switchTab('expense');
+      renderExpenses(getCurrentTrip());
     }
 
     // --- MULTI-TRIP MANAGER ---
@@ -1026,9 +1080,11 @@
       document.getElementById("schedInputDay").innerHTML = dayOpts;
       document.getElementById("expInputDay").innerHTML = dayOpts;
 
-      let payerOpts = '';
-      (trip.participants || []).forEach(p => { payerOpts += `<option value="${p}">${p}</option>`; });
-      document.getElementById("expInputPayer").innerHTML = payerOpts;
+      if (document.getElementById("expInputPayer")) {
+        let payerOpts = '';
+        (trip.participants || []).forEach(p => { payerOpts += `<option value="${p}">${p}</option>`; });
+        document.getElementById("expInputPayer").innerHTML = payerOpts;
+      }
 
       document.getElementById("expFormCurr").textContent = trip.currency;
       document.getElementById("schedFormCurr").textContent = trip.currency;
@@ -1124,7 +1180,7 @@
       const cat = document.getElementById("expInputCat").value;
       const pay = document.getElementById("expInputPay").value;
       const dayIdx = parseInt(document.getElementById("expInputDay").value) || 1;
-      const payer = document.getElementById("expInputPayer").value;
+      const payer = document.getElementById("expInputPayer") ? document.getElementById("expInputPayer").value : "";
 
       trip.expenses = trip.expenses || [];
       trip.expenses.push({
@@ -1330,32 +1386,26 @@
     function shareOrCopyKakao() {
       const trip = getCurrentTrip();
       const totalBase = (trip.expenses || []).reduce((sum, e) => sum + (e.base || 0), 0);
-      const count = (trip.participants || []).length || 1;
-      const perPerson = Math.round(totalBase / count);
+      const daysCount = getDaysCount(trip);
 
-      const paidMap = {};
-      (trip.participants || []).forEach(p => paidMap[p] = 0);
-      (trip.expenses || []).forEach(e => {
-        const payer = e.payer || trip.participants[0];
-        paidMap[payer] = (paidMap[payer] || 0) + (e.base || 0);
-      });
+      let text = `✈️ [${trip.title}]\n📍 여행지: ${trip.destination}\n📅 일정: ${trip.startDate} ~ ${trip.endDate} (${daysCount-1}박 ${daysCount}일)\n---------------------------\n💰 총 사용 금액: ${totalBase.toLocaleString()}원 / 예산 ${trip.totalBudget.toLocaleString()}원\n\n📊 [날짜별 지출 요약]\n`;
+      
+      for (let d = 1; d <= daysCount; d++) {
+        const dExps = (trip.expenses || []).filter(e => e.day === d);
+        const dSum = dExps.reduce((sum, e) => sum + (e.base || 0), 0);
+        if (dSum > 0) {
+          text += `· Day ${d}: ${dSum.toLocaleString()}원 (${dExps.length}건)\n`;
+        }
+      }
 
-      let text = `✈️ [${trip.title}]\n📍 여행지: ${trip.destination}\n📅 일정: ${trip.startDate} ~ ${trip.endDate}\n💱 기준 환율: 100 ${trip.currency} = ${(trip.exchangeRate * 100).toFixed(1)}원\n---------------------------\n💰 총 사용 금액: ${totalBase.toLocaleString()}원\n👥 1인당 부담금 (${count}명): ${perPerson.toLocaleString()}원\n\n📊 [정산 내역]\n`;
-      (trip.participants || []).forEach(p => {
-        const paid = paidMap[p] || 0;
-        const diff = paid - perPerson;
-        if (diff > 0) text += `· ${p}: +${diff.toLocaleString()}원 (받을 돈)\n`;
-        else if (diff < 0) text += `· ${p}: -${Math.abs(diff).toLocaleString()}원 (보낼 돈)\n`;
-        else text += `· ${p}: 정산 완료 (0원)\n`;
-      });
       text += `\n🗺️ [주요 일정]\n`;
-      (trip.itinerary || []).slice(0, 5).forEach(item => {
+      (trip.itinerary || []).slice(0, 6).forEach(item => {
         text += `· Day ${item.day} ${item.time || ''}: ${item.title}\n`;
       });
       text += `\n📱 TravelLog 앱에서 작성됨`;
 
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => alert("카톡 공유용 정산 메시지가 복사되었습니다!\n카카오톡에 붙여넣기(Ctrl+V) 하세요."));
+        navigator.clipboard.writeText(text).then(() => alert("카톡 공유용 일정 & 지출 요약 메시지가 복사되었습니다!\n카카오톡에 붙여넣기(Ctrl+V) 하세요."));
       } else {
         prompt("카카오톡 공유 텍스트:", text);
       }
