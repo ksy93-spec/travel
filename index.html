@@ -281,8 +281,9 @@
       <!-- 2. 필터 칩 (카테고리별) -->
       <div class="chips-row" id="checklistFilterChips" style="margin-bottom:12px;">
         <div class="chip active" onclick="filterChecklist('all', this)">전체</div>
+        <div class="chip" onclick="filterChecklist('required', this)">🔴 필수만</div>
         <div class="chip" onclick="filterChecklist('pending', this)">미완료만</div>
-        <div class="chip" onclick="filterChecklist('ticket', this)">🎫 예약·티켓</div>
+        <div class="chip" onclick="filterChecklist('ticket', this)">🎫 예약·교통패스</div>
         <div class="chip" onclick="filterChecklist('entry', this)">🛂 출입국·서류</div>
         <div class="chip" onclick="filterChecklist('money', this)">💳 환전·통신</div>
         <div class="chip" onclick="filterChecklist('hotel', this)">🏨 숙소·이동</div>
@@ -686,34 +687,78 @@
           { id: "p_daruma", name: "쿠시카츠 다루마 신세카이 본점", cat: "food", rating: "4.5", menu: "원조 꼬치튀김 & 소힘줄 도테야키", query: "Kushikatsu Daruma Shinsekai Osaka" }
         ],
         checklist: [
-          // 🎫 예약 & 티켓
-          { id: "c1", cat: "ticket", title: "유니버설 스튜디오 재팬 (USJ) 입장권 & 익스프레스", memo: "10/5(일) 방문 예정! 슈퍼 닌텐도 월드 확약권 시간대 예약 필수 (사전 매진 주의)", checked: false },
-          { id: "c2", cat: "ticket", title: "간사이 공항 ↔ 난바/우메다 특급열차(라피트/하루카)", memo: "10/4 입국 및 10/8 귀국 왕복 티켓 클룩/와그 사전 예매 확인", checked: false },
-          { id: "c3", cat: "ticket", title: "우메다 스카이빌딩 공중정원 입장권", memo: "10/4(토) 18:00 일몰 시간대 관람 또는 주유패스 무료 입장 기준 확인", checked: false },
-          { id: "c4", cat: "ticket", title: "오사카 주유패스 (Amazing Pass) 또는 e-패스", memo: "오사카성 천수각, 고자부네 뱃놀이, 헵파이브 관람차 무료 탑승 혜택 체크", checked: false },
-          { id: "c5", cat: "ticket", title: "아베노 하루카스 300 전망대 티켓", memo: "10/7(화) 300m 야경 관람 사전 예매 할인권 확인", checked: false },
+          // 🎫 예약 & 교통패스 (현실적 필요도 검증 완료)
+          { 
+            id: "c1", 
+            cat: "ticket", 
+            title: "🔴 [필수 예약] USJ 입장권 & 익스프레스 (슈퍼 닌텐도 월드)", 
+            memo: "★판단: 100% 필수! 10/5(일) 주말 방문이라 닌텐도 월드 확약권 및 익스프레스는 현장 구매 불가 수준으로 조기 매진됩니다. 출국 1~2달 전 공식 예매 필수", 
+            checked: false 
+          },
+          { 
+            id: "c2", 
+            cat: "ticket", 
+            title: "💡 [선택·추천] 공항 이동: 라피트 대신 '공항급행 (텐가차야 환승)'", 
+            memo: "★판단: 라피트 사전예매 불필요! 숙소(텐진바시)는 '공항급행(970엔)→텐가차야역(계단 하나 환승)→사카이스지선(240엔)'이 라피트(난바 하차 후 복잡한 환승)보다 도보가 훨씬 적고 빠릅니다. 교통카드로 찍고 타면 끝!", 
+            checked: false 
+          },
+          { 
+            id: "c4", 
+            cat: "ticket", 
+            title: "❌ [구매 비추천] 오사카 주유패스 / e-패스 (사면 2만원 이상 손해!)", 
+            memo: "★판단: 완전 불필요! 주유패스(3,300엔 인상)는 우메다 스카이빌딩 16시 이후 무료 제외됨. 일정상 Day 4 오사카성(600엔)+지하철(650엔) 뿐이라 사면 2,000엔 넘게 손해입니다. 지하철 탈 때마다 교통카드 개별 결제가 최고!", 
+            checked: true 
+          },
+          { 
+            id: "c_kyoto_pass", 
+            cat: "ticket", 
+            title: "❌ [구매 비추천] 교토 한큐 투어리스트 패스", 
+            memo: "★판단: 불필요! 숙소 앞 미나미모리마치역↔교토 가와라마치역 왕복 820엔으로 패스(800엔)와 차이가 없고 교토 버스는 적용 안 됨. 패스 교환 줄 서지 말고 그냥 교통카드 찍고 탑승하세요.", 
+            checked: true 
+          },
+          { 
+            id: "c_transit", 
+            cat: "ticket", 
+            title: "💳 [필수 준비] 일본 교통카드 (아이폰 스이카/파스모 or 현지 이코카 or 트래블로그)", 
+            memo: "★판단: 필수 준비! 패스 없이 공항급행, USJ행 JR선, 교토 한큐선, 오사카 지하철 모두 태그 탑승. (오사카 메트로는 트래블로그 비자 컨택트리스 터치 탑승도 가능)", 
+            checked: false 
+          },
+          { 
+            id: "c3", 
+            cat: "ticket", 
+            title: "🌤️ [당일 예매 권장] 우메다 스카이빌딩 공중정원 전망대", 
+            memo: "★판단: 미리 사지 말고 당일 날씨 보고 예매! 10/4(토) 18:00 일몰 야경. 비/안개 오면 뷰가 안 보이므로 당일 맑을 때 클룩/KKday 모바일 할인권(10% 할인) 즉시 구매 권장", 
+            checked: false 
+          },
+          { 
+            id: "c5", 
+            cat: "ticket", 
+            title: "🌤️ [당일 예매 권장] 아베노 하루카스 300 전망대", 
+            memo: "★판단: 선택 사항 & 당일 예매! 10/7(화) 300m 야경. 스카이빌딩과 겹치므로 원할 경우에만 당일 시야 상태 확인 후 모바일 즉시 바우처 구매 권장", 
+            checked: false 
+          },
 
           // 🛂 출입국 & 서류
-          { id: "c6", cat: "entry", title: "여권 유효기간 확인 (만료일 6개월 이상)", memo: "여권 훼손 및 유효기간 확인 필수 (출국일 2026.10.04 기준)", checked: true },
-          { id: "c7", cat: "entry", title: "비짓 재팬 웹 (Visit Japan Web) 사전 등록", memo: "입국 심사 및 세관 신고 통합 QR 코드 발급 (출국 1~2일 전 스마트폰 등록)", checked: false },
-          { id: "c8", cat: "entry", title: "항공권 E-티켓 및 모바일 체크인", memo: "출발 24시간 전 모바일 사전 좌석 지정 완료하기", checked: false },
+          { id: "c6", cat: "entry", title: "🔴 [필수] 여권 유효기간 확인 (만료일 6개월 이상)", memo: "★판단: 필수! 여권 훼손 및 유효기간 확인 (출국일 2026.10.04 기준)", checked: true },
+          { id: "c7", cat: "entry", title: "🔴 [필수] 비짓 재팬 웹 (Visit Japan Web) 사전 등록", memo: "★판단: 필수! 입국 심사 및 세관 신고 통합 QR 코드 발급 (출국 1~2일 전 스마트폰 등록하면 입국 심사 10분 컷)", checked: false },
+          { id: "c8", cat: "entry", title: "🔴 [필수] 항공권 E-티켓 및 모바일 체크인", memo: "★판단: 필수! 출발 24시간 전 모바일 사전 좌석 지정 완료하기", checked: false },
 
           // 💳 환전 & 통신
-          { id: "c9", cat: "money", title: "트래블로그 / 트래블월렛 엔화(JPY) 환전 충전", memo: "환전 수수료 무료 혜택 카드 충전 + 세븐뱅크 ATM 출금 방법 숙지", checked: false },
-          { id: "c10", cat: "money", title: "일본 현금(엔화) 비상금 환전", memo: "로컬 라멘 자판기, 길거리 타코야키, 신사 등 현금 전용 대비 (1인 1~2만엔 권장)", checked: false },
-          { id: "c11", cat: "money", title: "일본 데이터 무제한 eSIM 또는 유심(USIM) 구매", memo: "도착 즉시 셀룰러 활성화할 수 있도록 QR 코드 미리 캡처해두기", checked: false },
-          { id: "c12", cat: "money", title: "신용카드 해외 원화결제(DCC) 차단 확인", memo: "카드사 앱에서 현지 통화(JPY) 결제 확인하여 이중 수수료 방지", checked: false },
+          { id: "c9", cat: "money", title: "🔴 [필수] 트래블로그 / 트래블월렛 엔화(JPY) 환전 충전", memo: "★판단: 필수! 환전 수수료 100% 무료 혜택 카드 충전 + 현지 세븐뱅크 ATM 무료 출금 방법 숙지", checked: false },
+          { id: "c10", cat: "money", title: "🔴 [필수] 일본 현금(엔화) 비상금 환전 (1인 1~2만엔)", memo: "★판단: 필수! 하루코마 스시, 로컬 라멘 자판기, 길거리 타코야키, 신사 등 현금 전용 대비", checked: false },
+          { id: "c11", cat: "money", title: "🔴 [필수] 일본 데이터 무제한 eSIM 또는 유심(USIM) 구매", memo: "★판단: 필수! 도착 즉시 셀룰러 활성화할 수 있도록 QR 코드 미리 캡처해두기", checked: false },
+          { id: "c12", cat: "money", title: "💡 [확인] 신용카드 해외 원화결제(DCC) 차단 확인", memo: "★판단: 필수 권장! 카드사 앱에서 현지 통화(JPY) 결제 확인하여 불필요한 3~5% 이중 환전 수수료 방지", checked: false },
 
           // 🏨 숙소 & 이동
-          { id: "c13", cat: "hotel", title: "에스파시온 우메다 이스트 숙소 바우처 & 입실 안내", memo: "10/4(토) 16:00 체크인 (체크아웃 10/8 10:00 이전) · 스마트키/셀프체크인 비번 확인 (결제완료 320,038원)", checked: true },
-          { id: "c14", cat: "hotel", title: "체크인 전 짐 보관(Luggage Drop) 사전 확인", memo: "10/4 13:00 숙소 도착 후 캐리어 사전 보관 가능 여부 숙소에 확인", checked: false },
-          { id: "c15", cat: "hotel", title: "110V 돼지코 변환 플러그 2~3개 챙기기", memo: "일본은 110V 콘센트 사용! 스마트폰, 충전기용 돼지코 필수", checked: false },
+          { id: "c13", cat: "hotel", title: "🔴 [필수] 에스파시온 우메다 이스트 숙소 바우처 & 입실 안내", memo: "★판단: 필수! 10/4(토) 16:00 체크인 (체크아웃 10/8 10:00 이전) · 스마트키/셀프체크인 비번 확인 (결제완료 320,038원)", checked: true },
+          { id: "c14", cat: "hotel", title: "💡 [확인] 체크인 전 짐 보관(Luggage Drop) 사전 문의", memo: "★판단: 확인 권장! 10/4 13:00 숙소 도착 후 입실 전 캐리어 사전 보관 가능 여부 숙소 메시지로 미리 확인", checked: false },
+          { id: "c15", cat: "hotel", title: "🔴 [필수] 110V 돼지코 변환 플러그 2~3개 챙기기", memo: "★판단: 필수! 일본은 110V 11자 콘센트 사용! 스마트폰, 보조배터리 충전기용 돼지코 필수", checked: false },
 
           // 🎒 필수짐 & 준비물
-          { id: "c16", cat: "packing", title: "보조배터리 챙기기 (반드시 기내 수하물)", memo: "하루 종일 사진/구글맵/USJ 앱 사용 대비! *위탁 수하물 불가*", checked: false },
-          { id: "c17", cat: "packing", title: "발 편한 운동화 & 휴족시간", memo: "USJ 및 교토 도보 2만 보 이상 대비 푹신한 운동화 필수 착용", checked: false },
-          { id: "c18", cat: "packing", title: "동전 지갑 (100엔 / 500엔 보관용)", memo: "자판기 및 상점가 결제 시 생기는 잔돈 보관에 매우 유용", checked: false },
-          { id: "c19", cat: "packing", title: "상비약 (소화제, 진통제, 밴드, 인공눈물)", memo: "현지 음식 적응 및 장시간 이동 대비 개인 비상약 챙기기", checked: false }
+          { id: "c16", cat: "packing", title: "🔴 [필수] 보조배터리 챙기기 (반드시 기내 수하물)", memo: "★판단: 필수! 하루 종일 사진/구글맵/USJ 앱 사용 대비! *위탁 수하물(부치는 짐) 반입 절대 불가*", checked: false },
+          { id: "c17", cat: "packing", title: "🔴 [필수] 발 편한 운동화 & 휴족시간", memo: "★판단: 필수! USJ 및 교토 도보 2만 보 이상 대비 푹신한 러닝화 필수 착용", checked: false },
+          { id: "c18", cat: "packing", title: "💡 [추천] 동전 지갑 (100엔 / 500엔 보관용)", memo: "★판단: 추천! 일본은 잔돈 동전이 많이 생겨 동전 지갑이 있으면 결제 시 삶의 질 급상승", checked: false },
+          { id: "c19", cat: "packing", title: "🔴 [필수] 상비약 (소화제, 진통제, 밴드, 인공눈물)", memo: "★판단: 필수! 기름진 일식 적응(오타이산/카베진) 및 장시간 도보 대비 개인 비상약 챙기기", checked: false }
         ]
       },
       {
@@ -742,7 +787,7 @@
     let selectedExpenseCat = "all";
 
     function loadAllTrips() {
-      const saved = localStorage.getItem("travellog_multi_trips_v7") || localStorage.getItem("travellog_multi_trips_v6");
+      const saved = localStorage.getItem("travellog_multi_trips_v8") || localStorage.getItem("travellog_multi_trips_v7") || localStorage.getItem("travellog_multi_trips_v6");
       const activeId = localStorage.getItem("travellog_active_trip_id");
       if (saved) {
         try {
@@ -758,24 +803,28 @@
         trips = JSON.parse(JSON.stringify(INITIAL_TRIPS));
       }
 
-      // Ensure each trip has a checklist array; for trip_osaka, if checklist is empty, populate from INITIAL_TRIPS
+      // Check migration flag for v8 realistic checklist update
+      const v8Migrated = localStorage.getItem("travellog_checklist_v8_migrated");
       trips.forEach(t => {
-        if (!t.checklist || t.checklist.length === 0) {
-          const initMatch = INITIAL_TRIPS.find(it => it.id === t.id);
-          if (initMatch && initMatch.checklist) {
-            t.checklist = JSON.parse(JSON.stringify(initMatch.checklist));
-          } else {
-            t.checklist = t.checklist || [];
+        if (t.id === 'trip_osaka') {
+          if (!v8Migrated || !t.checklist || t.checklist.length === 0) {
+            const initMatch = INITIAL_TRIPS.find(it => it.id === t.id);
+            if (initMatch && initMatch.checklist) {
+              t.checklist = JSON.parse(JSON.stringify(initMatch.checklist));
+            }
           }
+        } else {
+          t.checklist = t.checklist || [];
         }
       });
+      localStorage.setItem("travellog_checklist_v8_migrated", "true");
 
       currentTripId = (activeId && trips.some(t => t.id === activeId)) ? activeId : trips[0].id;
       saveAllTrips();
     }
 
     function saveAllTrips() {
-      localStorage.setItem("travellog_multi_trips_v7", JSON.stringify(trips));
+      localStorage.setItem("travellog_multi_trips_v8", JSON.stringify(trips));
       localStorage.setItem("travellog_active_trip_id", currentTripId);
     }
 
@@ -1146,13 +1195,23 @@
 
     function getChecklistCatBadge(cat) {
       switch(cat) {
-        case 'ticket': return { text: '🎫 예약·티켓', bg: '#dbeafe', color: '#1e40af' };
+        case 'ticket': return { text: '🎫 예약·교통', bg: '#dbeafe', color: '#1e40af' };
         case 'entry': return { text: '🛂 출입국·서류', bg: '#fef3c7', color: '#92400e' };
         case 'money': return { text: '💳 환전·통신', bg: '#e0e7ff', color: '#3730a3' };
         case 'hotel': return { text: '🏨 숙소·이동', bg: '#fce7f3', color: '#9d174d' };
         case 'packing': return { text: '🎒 필수짐·준비물', bg: '#d1fae5', color: '#065f46' };
         default: return { text: '📌 기타', bg: '#f1f5f9', color: '#475569' };
       }
+    }
+
+    function getStatusBadge(title) {
+      if (title.includes('[필수]')) return { text: '🔴 필수', bg: '#fee2e2', color: '#dc2626' };
+      if (title.includes('[구매 비추천]')) return { text: '❌ 구매 비추천 (비효율)', bg: '#f1f5f9', color: '#64748b' };
+      if (title.includes('[선택·추천]')) return { text: '💡 실속 추천', bg: '#dcfce7', color: '#15803d' };
+      if (title.includes('[당일 예매 권장]')) return { text: '🌤️ 당일 확인 후', bg: '#fef3c7', color: '#b45309' };
+      if (title.includes('[확인]')) return { text: '🔍 사전 확인', bg: '#e0e7ff', color: '#4338ca' };
+      if (title.includes('[추천]')) return { text: '👍 추천', bg: '#f0fdf4', color: '#16a34a' };
+      return null;
     }
 
     function renderChecklist(trip) {
@@ -1175,6 +1234,8 @@
       let filtered = list;
       if (selectedChecklistFilter === 'pending') {
         filtered = list.filter(item => !item.checked);
+      } else if (selectedChecklistFilter === 'required') {
+        filtered = list.filter(item => item.title.includes('[필수]'));
       } else if (selectedChecklistFilter !== 'all') {
         filtered = list.filter(item => item.cat === selectedChecklistFilter);
       }
@@ -1196,15 +1257,27 @@
       let html = '';
       filtered.forEach(item => {
         const badge = getChecklistCatBadge(item.cat);
+        const statusBadge = getStatusBadge(item.title);
         const isChecked = !!item.checked;
+        const isNotRecommended = item.title.includes('[구매 비추천]');
+        const isRequired = item.title.includes('[필수]');
+
+        let borderStyle = '';
+        if (isNotRecommended) {
+          borderStyle = 'border: 1px dashed #cbd5e1; background: #f8fafc;';
+        } else if (isRequired && !isChecked) {
+          borderStyle = 'border-left: 4px solid #ef4444;';
+        }
+
         html += `
-          <div class="checklist-item ${isChecked ? 'checked' : ''}" id="chk-item-${item.id}">
+          <div class="checklist-item ${isChecked ? 'checked' : ''}" id="chk-item-${item.id}" style="${borderStyle}">
             <div class="chk-box" onclick="toggleChecklistItem('${item.id}')" title="${isChecked ? '완료 취소' : '체크 완료'}">
               ${isChecked ? '✓' : ''}
             </div>
             <div style="flex:1; cursor:pointer; min-width:0;" onclick="toggleChecklistItem('${item.id}')">
-              <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px; flex-wrap:wrap;">
                 <span class="badge" style="background:${badge.bg}; color:${badge.color}; font-size:10px; font-weight:700; padding:2px 8px;">${badge.text}</span>
+                ${statusBadge ? `<span class="badge" style="background:${statusBadge.bg}; color:${statusBadge.color}; font-size:10px; font-weight:800; padding:2px 8px;">${statusBadge.text}</span>` : ''}
               </div>
               <div class="chk-title" style="font-size:13.5px; font-weight:700; color:#0f172a; line-height:1.4; word-break:keep-all;">${escapeHtml(item.title)}</div>
               ${item.memo ? `<div style="font-size:11.5px; color:#64748b; margin-top:3px; line-height:1.45; word-break:keep-all;">${escapeHtml(item.memo)}</div>` : ''}
