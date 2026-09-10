@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>TravelLog - 여행 플래너 & 가계부</title>
+  
+  <!-- iOS Standalone PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="TravelLog">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563eb'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='50'>✈️</text></svg>">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', Pretendard, Roboto, sans-serif; }
+    
+    html, body { height: 100%; height: -webkit-fill-available; background-color: #0f172a; color: #1e293b; }
+    body { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; margin: 0; }
+    
+    /* PC Top Control Bar */
+    .pc-bar { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 16px; background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); border-radius: 30px; margin: 12px 0 6px; color: #fff; font-size: 13px; align-items: center; z-index: 100; }
+    .pc-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .pc-btn:hover { background: rgba(255,255,255,0.35); }
+    .pc-btn-green { background: #10b981; border-color: #059669; }
+
+    /* Main Container (Mobile Simulator on PC / Native on iPhone 14 Pro) */
+    .app-container { width: 100%; max-width: 430px; height: 100vh; height: 100dvh; max-height: 920px; background: #f8fafc; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.5); border-radius: 40px; border: 8px solid #1e293b; }
+    
+    @media (max-width: 768px) {
+      body { background: #f8fafc; }
+      .pc-bar { display: none; }
+      .app-container { max-width: 100%; height: 100vh; height: 100dvh; max-height: none; border-radius: 0; border: none; box-shadow: none; }
+    }
+    
+    .app-container.fullscreen { max-width: 680px; height: 100vh; height: 100dvh; max-height: none; border-radius: 0; border: none; }
+
+    /* Header */
+    .header { background: rgba(255,255,255,0.96); backdrop-filter: blur(15px); border-bottom: 1px solid #e2e8f0; padding: 12px 16px; position: sticky; top: 0; z-index: 40; }
+    .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    .badge-blue { background: #dbeafe; color: #1d4ed8; }
+    .badge-amber { background: #fef3c7; color: #b45309; }
+    .badge-rose { background: #ffe4e6; color: #be123c; }
+    .badge-green { background: #dcfce7; color: #15803d; }
+    .badge-purple { background: #f3e8ff; color: #7e22ce; }
+
+    /* Mini Widgets */
+    .widget-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .widget-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 10px; cursor: pointer; transition: transform 0.15s; }
+    .widget-card:active { transform: scale(0.97); }
+
+    /* Content Area with iPhone 14 Pro safe area calculation */
+    .content-area { flex: 1; overflow-y: auto; padding: 14px 14px calc(90px + env(safe-area-inset-bottom, 20px)); -webkit-overflow-scrolling: touch; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Bottom iOS Navigation Bar with Safe Area Inset */
+    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: calc(56px + env(safe-area-inset-bottom, 16px)); background: rgba(255,255,255,0.98); backdrop-filter: blur(20px); border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; align-items: flex-start; z-index: 45; padding-top: 6px; padding-bottom: env(safe-area-inset-bottom, 16px); }
+    .nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background: none; border: none; color: #94a3b8; font-size: 11px; font-weight: 600; cursor: pointer; width: 25%; }
+    .nav-btn.active { color: #2563eb; }
+    .nav-btn .icon { font-size: 20px; margin-bottom: 2px; }
+
+    /* Cards & Lists */
+    .card { background: #fff; border-radius: 16px; padding: 14px; margin-bottom: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+    .card:active { background: #f8fafc; }
+
+    /* Day Section Header */
+    .day-section-header { display: flex; justify-content: space-between; align-items: center; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 12px; padding: 8px 12px; margin: 14px 0 8px; font-size: 12px; font-weight: 800; color: #0369a1; }
+
+    /* Floating Add Button with Safe Area */
+    .fab { position: absolute; bottom: calc(72px + env(safe-area-inset-bottom, 18px)); right: 16px; width: 52px; height: 52px; border-radius: 26px; background: #2563eb; color: #fff; border: none; font-size: 24px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(37,99,235,0.4); cursor: pointer; z-index: 42; }
+
+    /* Modals */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(5px); z-index: 99999; display: none; align-items: flex-end; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal-sheet { background: #fff; border-radius: 24px 24px 0 0; width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; padding: 20px 20px calc(24px + env(safe-area-inset-bottom, 16px)); box-shadow: 0 -10px 30px rgba(0,0,0,0.25); }
+    @media (min-width: 768px) {
+      .modal-overlay { align-items: center; }
+      .modal-sheet { border-radius: 24px; padding-bottom: 24px; }
+    }
+
+    /* Forms */
+    .form-group { margin-bottom: 12px; text-align: left; }
+    .form-label { display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+    .form-input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 14px; outline: none; background: #fff; }
+    .form-input:focus { border-color: #2563eb; }
+    .btn-submit { width: 100%; padding: 12px; background: #2563eb; color: #fff; font-weight: 700; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; margin-top: 6px; }
+    .btn-submit:active { background: #1d4ed8; }
+
+    /* Filter Chips */
+    .chips-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; scrollbar-width: none; }
+    .chips-row::-webkit-scrollbar { display: none; }
+    .chip { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; border: 1px solid #e2e8f0; background: #fff; color: #475569; cursor: pointer; }
+    .chip.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .chip-sub { font-size: 11px; padding: 4px 10px; }
+    .chip-sub.active { background: #0284c7; border-color: #0284c7; }
+  </style>
+</head>
+<body>
+
+  <!-- PC Top Bar -->
+  <div class="pc-bar">
+    <span style="font-weight:700;">✈️ TravelLog (PC 시연)</span>
+    <button class="pc-btn pc-btn-green" onclick="openIPhoneModal()">📱 내 아이폰에서 열기</button>
+    <button class="pc-btn" onclick="openTripManagerModal()">📂 내 여행 목록 (다중 관리)</button>
+    <button class="pc-btn" onclick="openShareModal()">💬 카톡공유 / 백업</button>
+    <button class="pc-btn" onclick="openNewTripModal()">➕ 새 여행 만들기</button>
+    <button class="pc-btn" onclick="resetDefaultTrips()">🔄 예제 데이터 복구</button>
+    <button class="pc-btn" onclick="toggleFullscreen()">🖥️ 전체화면</button>
+  </div>
+
+  <!-- Mobile Container (iPhone 14 Pro optimized) -->
+  <div class="app-container" id="appFrame">
+    
+    <!-- Header -->
+    <div class="header">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="cursor:pointer; flex:1;" onclick="openTripManagerModal()">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="badge badge-blue" id="headerFlagDest">🇯🇵 일본 오사카</span>
+            <span style="font-size:11px; color:#64748b; font-weight:600;" id="headerDates">10.03 ~ 10.08 (5박6일)</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:4px; margin-top:2px;">
+            <h1 style="font-size:16px; font-weight:800; color:#0f172a;" id="headerTitle">오사카 맛집 & 힐링 여행</h1>
+            <span style="font-size:12px; color:#64748b;">▼</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button onclick="openTripManagerModal()" style="padding:6px 10px; border-radius:12px; border:1px solid #e2e8f0; background:#f1f5f9; font-size:12px; font-weight:700; color:#334155; cursor:pointer;" title="여행 목록">✈️ 목록</button>
+        </div>
+      </div>
+
+      <!-- Quick Widgets -->
+      <div class="widget-grid">
+        <div class="widget-card" onclick="openExchangeModal()">
+          <div style="font-size:10px; font-weight:700; color:#2563eb; display:flex; justify-content:space-between;">
+            <span>실시간 환율 🔄</span>
+            <span>설정</span>
+          </div>
+          <div style="font-size:13px; font-weight:800; color:#0f172a; margin-top:2px;" id="headerRate">100 JPY = 908.5원</div>
+        </div>
+
+        <div class="widget-card" onclick="switchTab('analytics')">
+          <div style="font-size:10px; font-weight:700; color:#d97706; display:flex; justify-content:space-between;">
+            <span>남은 예산 💰</span>
+            <span id="headerSpentPercent">29% 사용</span>
+          </div>
+          <div style="font-size:13px; font-weight:800; color:#0f172a; margin-top:2px;" id="headerRemaining">1,061,800원</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 1: ITINERARY (일정표) -->
+    <div id="tab-itinerary" class="content-area tab-content active">
+      <div class="chips-row" id="itineraryDayChipsRow"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-size:12px; font-weight:700; color:#475569;" id="itineraryCountLabel">전체 일정</span>
+        <button onclick="openAddScheduleModal()" style="font-size:12px; font-weight:700; color:#2563eb; background:none; border:none; cursor:pointer;">➕ 일정 추가</button>
+      </div>
+      <div id="itineraryCardList"></div>
+    </div>
+
+    <!-- TAB 2: EXPENSE (날짜별 가계부) -->
+    <div id="tab-expense" class="content-area tab-content">
+      <!-- Total Summary Card -->
+      <div style="background:linear-gradient(135deg, #2563eb, #4f46e5); color:#fff; border-radius:18px; padding:16px; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div style="font-size:11px; color:#bfdbfe;">총 지출 금액</div>
+            <div style="font-size:24px; font-weight:800; margin-top:2px;" id="expenseTotalKRW">438,200원</div>
+            <div style="font-size:12px; color:#93c5fd; font-weight:600;" id="expenseTotalLocal">48,230 JPY</div>
+          </div>
+          <button onclick="openAddExpenseModal()" style="background:#fff; color:#2563eb; font-weight:700; font-size:12px; padding:6px 14px; border-radius:20px; border:none; cursor:pointer;">➕ 지출 기록</button>
+        </div>
+        <div style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.2); display:flex; justify-content:space-between; font-size:11px; color:#dbeafe;">
+          <span>총 예산: <b id="expenseBudgetDisp" style="color:#fff;">1,500,000원</b></span>
+          <span>남은 금액: <b id="expenseRemainingDisp" style="color:#6ee7b7;">1,061,800원</b></span>
+        </div>
+      </div>
+
+      <!-- Date Filter Chips -->
+      <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px;">📅 날짜별 보기</div>
+      <div class="chips-row" id="expenseDayChipsRow"></div>
+
+      <!-- Category Filter Chips -->
+      <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px;">🏷️ 카테고리 필터</div>
+      <div class="chips-row" id="expenseCategoryChipsRow">
+        <button class="chip chip-sub active" onclick="filterExpenseCat('all', this)">전체</button>
+        <button class="chip chip-sub" onclick="filterExpenseCat('food', this)">🍱 식비</button>
+        <button class="chip chip-sub" onclick="filterExpenseCat('transport', this)">🚇 교통</button>
+        <button class="chip chip-sub" onclick="filterExpenseCat('spot', this)">🎟️ 관광</button>
+        <button class="chip chip-sub" onclick="filterExpenseCat('shopping', this)">🛍️ 쇼핑</button>
+        <button class="chip chip-sub" onclick="filterExpenseCat('stay', this)">🏨 숙박</button>
+      </div>
+
+      <!-- Grouped Expense Cards -->
+      <div id="expenseGroupedList"></div>
+    </div>
+
+    <!-- TAB 3: PLACES & MAPS (지도 & 맛집) -->
+    <div id="tab-places" class="content-area tab-content">
+      <div class="card" style="background:#eff6ff; border-color:#bfdbfe; text-align:center; padding:12px;">
+        <div style="font-size:13px; font-weight:700; color:#1e40af;">🗺️ Google Maps 맛집 & 명소 핀</div>
+        <div style="font-size:11px; color:#3b82f6; margin-top:2px;">각 장소를 탭하면 실제 구글 지도 앱으로 연결됩니다.</div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-size:12px; font-weight:700; color:#475569;">추천 맛집 & 명소</span>
+        <button onclick="openAddPlaceModal()" style="font-size:12px; font-weight:700; color:#2563eb; background:none; border:none; cursor:pointer;">➕ 맛집 등록</button>
+      </div>
+      <div id="placesCardList"></div>
+    </div>
+
+    <!-- TAB 4: ANALYTICS & SETTLEMENT (정산 & 통계) -->
+    <div id="tab-analytics" class="content-area tab-content">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:13px; font-weight:800; color:#0f172a;">👥 친구와 여행 정산 (더치페이)</span>
+          <button onclick="openShareModal()" style="font-size:11px; font-weight:700; color:#2563eb; background:#eff6ff; border:none; padding:4px 8px; border-radius:10px; cursor:pointer;">카톡 전송</button>
+        </div>
+        <div id="participantsBadges" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;"></div>
+        <div id="settlementSummaryBox" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:12px; font-size:12px;"></div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px; font-weight:800; color:#0f172a; margin-bottom:8px;">📊 카테고리별 지출 요약</div>
+        <div id="categoryBreakdownList" style="font-size:12px;"></div>
+      </div>
+    </div>
+
+    <!-- FAB Button -->
+    <button class="fab" onclick="handleFab()">＋</button>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+      <button class="nav-btn active" onclick="switchTab('itinerary')" id="nav-itinerary">
+        <span class="icon">📅</span>
+        <span>일정표</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('expense')" id="nav-expense">
+        <span class="icon">💰</span>
+        <span>가계부</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('places')" id="nav-places">
+        <span class="icon">🗺️</span>
+        <span>지도&맛집</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('analytics')" id="nav-analytics">
+        <span class="icon">📊</span>
+        <span>정산·통계</span>
+      </button>
+    </div>
+
+  </div><!-- End App Container -->
+
+  <!-- ALL MODALS -->
+
+  <!-- 0. Trip Manager Modal (Multi-Trip Management) -->
+  <div class="modal-overlay" id="modal-trip-manager" onclick="closeModalIfOverlay(event, 'modal-trip-manager')">
+    <div class="modal-sheet">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div>
+          <h3 style="font-size:17px; font-weight:800; color:#0f172a;">✈️ 내 여행 목록 관리</h3>
+          <p style="font-size:11px; color:#64748b; margin-top:2px;">누적된 여행 계획을 선택, 수정, 삭제할 수 있습니다.</p>
+        </div>
+        <button onclick="closeModal('modal-trip-manager')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <button onclick="openNewTripModal(); closeModal('modal-trip-manager');" class="btn-submit" style="background:#10b981; margin-bottom:14px;">
+        ➕ 새 여행 계획 만들기
+      </button>
+
+      <div id="tripManagerList"></div>
+    </div>
+  </div>
+
+  <!-- 1. Add Expense Modal -->
+  <div class="modal-overlay" id="modal-add-expense" onclick="closeModalIfOverlay(event, 'modal-add-expense')">
+    <div class="modal-sheet">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:16px; font-weight:800;">💰 지출 내역 기록</h3>
+        <button onclick="closeModal('modal-add-expense')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <form onsubmit="submitExpense(event)">
+        <div class="form-group">
+          <label class="form-label">현지 지출 금액 (<span id="expFormCurr">JPY</span>)</label>
+          <input type="number" id="expInputLocal" class="form-input" style="font-size:18px; font-weight:800; color:#2563eb;" placeholder="0" required oninput="calcKrwLive()">
+          <div style="font-size:12px; color:#64748b; margin-top:4px;">원화 환산: <b id="expLiveKrw" style="color:#4338ca;">0원</b></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">지출 내용</label>
+          <input type="text" id="expInputTitle" class="form-input" placeholder="예) 이치란 라멘 & 차슈 추가" required>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-group">
+            <label class="form-label">카테고리</label>
+            <select id="expInputCat" class="form-input">
+              <option value="food">🍱 식비</option>
+              <option value="transport">🚇 교통</option>
+              <option value="spot">🎟️ 관광</option>
+              <option value="shopping">🛍️ 쇼핑</option>
+              <option value="stay">🏨 숙박</option>
+              <option value="other">💡 기타</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">결제 수단</label>
+            <select id="expInputPay" class="form-input">
+              <option value="card">💳 카드/트래블로그</option>
+              <option value="cash">💵 현금</option>
+              <option value="transit_card">🚃 교통카드</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-group">
+            <label class="form-label">해당 일자 (Day)</label>
+            <select id="expInputDay" class="form-input"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">결제자</label>
+            <select id="expInputPayer" class="form-input"></select>
+          </div>
+        </div>
+        <button type="submit" class="btn-submit">가계부에 저장하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Add Schedule Modal -->
+  <div class="modal-overlay" id="modal-add-schedule" onclick="closeModalIfOverlay(event, 'modal-add-schedule')">
+    <div class="modal-sheet">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:16px; font-weight:800;">📅 새 일정 계획 추가</h3>
+        <button onclick="closeModal('modal-add-schedule')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <form onsubmit="submitSchedule(event)">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-group">
+            <label class="form-label">일자</label>
+            <select id="schedInputDay" class="form-input"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">시간</label>
+            <input type="time" id="schedInputTime" class="form-input" value="12:00">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">장소 / 일정 제목</label>
+          <input type="text" id="schedInputTitle" class="form-input" placeholder="예) 규카츠 모토무라 난바점" required>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-group">
+            <label class="form-label">분류</label>
+            <select id="schedInputCat" class="form-input">
+              <option value="food">🍱 맛집/식당</option>
+              <option value="spot">🎟️ 관광명소</option>
+              <option value="shopping">🛍️ 쇼핑</option>
+              <option value="stay">🏨 숙소</option>
+              <option value="transport">🚇 이동</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">예상 비용 (<span id="schedFormCurr">JPY</span>)</label>
+            <input type="number" id="schedInputCost" class="form-input" placeholder="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">메모 / 꿀팁</label>
+          <input type="text" id="schedInputMemo" class="form-input" placeholder="예) 비밀소스 4배 추천, 웨이팅 30분">
+        </div>
+        <button type="submit" class="btn-submit">일정표에 등록</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Exchange Modal -->
+  <div class="modal-overlay" id="modal-exchange" onclick="closeModalIfOverlay(event, 'modal-exchange')">
+    <div class="modal-sheet">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:16px; font-weight:800;">💱 환율 설정 & 동기화</h3>
+        <button onclick="closeModal('modal-exchange')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <div class="card" style="background:#eff6ff; border-color:#bfdbfe;">
+        <div style="font-size:12px; color:#1e40af;">현재 적용 환율:</div>
+        <div style="font-size:18px; font-weight:800; color:#1d4ed8; margin-top:2px;" id="modalRateDisp">100 JPY = 908.50 KRW</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">수동 고정 환율 지정 (100 <span id="modalCurrCode">JPY</span> = ? 원)</label>
+        <input type="number" step="0.1" id="customRateVal" class="form-input" placeholder="910.0">
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" onclick="syncLiveRate()" style="flex:1; padding:10px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer;">🔄 실시간 환율</button>
+        <button type="button" onclick="applyCustomRate()" style="flex:1; padding:10px; background:#2563eb; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer;">환율 적용</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. iPhone Connect Modal -->
+  <div class="modal-overlay" id="modal-iphone" onclick="closeModalIfOverlay(event, 'modal-iphone')">
+    <div class="modal-sheet" style="text-align:center;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:16px; font-weight:800;">📱 내 아이폰에서 열기</h3>
+        <button onclick="closeModal('modal-iphone')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <p style="font-size:12px; color:#64748b; margin-bottom:12px;">아이폰 카메라로 아래 QR 코드를 스캔하세요!</p>
+      <div style="display:inline-block; padding:12px; background:#fff; border:2px solid #e2e8f0; border-radius:16px; margin-bottom:12px;">
+        <img id="qrImageEl" src="" alt="QR Code" style="width:150px; height:150px; display:block;">
+      </div>
+      <div style="background:#f1f5f9; padding:10px; border-radius:12px; font-size:12px; font-weight:700; color:#1e293b; display:flex; justify-content:space-between; align-items:center;">
+        <span id="lanAddressText">http://222.108.169.184:5173</span>
+        <button onclick="copyAddress()" style="background:#2563eb; color:#fff; border:none; padding:4px 8px; border-radius:8px; font-size:11px; cursor:pointer;">복사</button>
+      </div>
+      <div style="margin-top:12px; font-size:11px; color:#059669; text-align:left; background:#ecfdf5; padding:10px; border-radius:12px;">
+        💡 <b>아이폰 14 Pro 꿀팁</b>: Safari에서 접속 후 하단 <b>[공유(↑)] → [홈 화면에 추가]</b>를 누르면 주소창 없는 전체화면 앱으로 실행됩니다!
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Share & Backup Modal -->
+  <div class="modal-overlay" id="modal-share" onclick="closeModalIfOverlay(event, 'modal-share')">
+    <div class="modal-sheet">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:16px; font-weight:800;">💬 카톡 공유 & 백업</h3>
+        <button onclick="closeModal('modal-share')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <div class="card" style="background:#fefce8; border-color:#fef08a;">
+        <div style="font-weight:700; font-size:13px; color:#854d0e;">💬 카카오톡 정산 & 일정 전송</div>
+        <p style="font-size:11px; color:#a16207; margin:4px 0 10px;">1인당 정산 금액과 주요 일정이 담긴 메시지입니다.</p>
+        <div style="display:flex; gap:8px;">
+          <button onclick="shareOrCopyKakao()" style="flex:1; padding:10px; background:#facc15; color:#713f12; border:none; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer;">카톡 전송 / 복사</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-weight:700; font-size:13px; color:#1e293b;">💾 여행 데이터 파일 백업 (JSON)</div>
+        <p style="font-size:11px; color:#64748b; margin:4px 0 10px;">작성한 계획표를 파일로 다운로드하거나 불러옵니다.</p>
+        <div style="display:flex; gap:8px;">
+          <button onclick="exportJSON()" style="flex:1; padding:10px; background:#2563eb; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:12px; cursor:pointer;">파일 다운로드</button>
+          <label style="flex:1; padding:10px; background:#e2e8f0; color:#334155; border-radius:12px; font-weight:700; font-size:12px; cursor:pointer; text-align:center;">
+            파일 불러오기
+            <input type="file" accept=".json" onchange="importJSON(event)" style="display:none;">
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. New / Edit Trip Modal -->
+  <div class="modal-overlay" id="modal-new-trip" onclick="closeModalIfOverlay(event, 'modal-new-trip')">
+    <div class="modal-sheet">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:16px; font-weight:800;" id="tripModalHeading">✈️ 새 여행 계획 만들기</h3>
+        <button onclick="closeModal('modal-new-trip')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <form onsubmit="submitTripForm(event)">
+        <input type="hidden" id="editingTripId" value="">
+        <div class="form-group">
+          <label class="form-label">여행 제목</label>
+          <input type="text" id="newTripTitle" class="form-input" value="오사카 가을 힐링 미식 여행" required>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-group">
+            <label class="form-label">여행지</label>
+            <select id="newTripPreset" class="form-input">
+              <option value="JP-Osaka" selected>🇯🇵 일본 오사카 (JPY)</option>
+              <option value="JP-Tokyo">🇯🇵 일본 도쿄 (JPY)</option>
+              <option value="JP-Fukuoka">🇯🇵 일본 후쿠오카 (JPY)</option>
+              <option value="TW-Taipei">🇹🇼 대만 타이베이 (TWD)</option>
+              <option value="VN-Danang">🇻🇳 베트남 다낭 (VND)</option>
+              <option value="US-Hawaii">🇺🇸 미국 하와이 (USD)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">예산 (KRW)</label>
+            <input type="number" id="newTripBudget" class="form-input" value="1500000" step="10000">
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-group">
+            <label class="form-label">시작일</label>
+            <input type="date" id="newTripStart" class="form-input" value="2026-10-03" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">종료일</label>
+            <input type="date" id="newTripEnd" class="form-input" value="2026-10-08" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-submit" id="tripSubmitBtn">여행 저장하고 열기</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Initial Multi-Trip Preload Data
+    const INITIAL_TRIPS = [
+      {
+        id: "trip_osaka",
+        title: "오사카 맛집 & 힐링 여행",
+        destination: "일본 오사카",
+        flag: "🇯🇵",
+        currency: "JPY",
+        exchangeRate: 9.085,
+        startDate: "2026-10-03",
+        endDate: "2026-10-08",
+        totalBudget: 1500000,
+        participants: ["나 (작성자)", "민우", "수진"],
+        itinerary: [
+          { id: "1", day: 1, time: "11:30", title: "간사이 공항 도착 & 라피트 탑승", cat: "transport", cost: 1490, memo: "난바역 직행 교환권", query: "Kansai Airport Osaka" },
+          { id: "2", day: 1, time: "13:30", title: "이치란 라멘 도톤보리 본관 점심", cat: "food", cost: 1480, memo: "비밀소스 4배, 차슈 추가", query: "Ichiran Dotonbori Main Building Osaka" },
+          { id: "3", day: 1, time: "15:30", title: "크로스 호텔 오사카 체크인", cat: "stay", cost: 0, memo: "도톤보리 도보 1분", query: "Cross Hotel Osaka" },
+          { id: "4", day: 1, time: "19:00", title: "쿠시카츠 다루마 도톤보리 & 글리코상", cat: "food", cost: 3200, memo: "꼬치 모둠 세트 + 생맥주", query: "Kushikatsu Daruma Dotonbori" },
+          { id: "5", day: 2, time: "11:00", title: "규카츠 모토무라 난바점 오픈런", cat: "food", cost: 2600, memo: "더블 규카츠 정식", query: "Gyukatsu Motomura Namba Osaka" },
+          { id: "6", day: 2, time: "14:00", title: "오사카성 천수각 & 뱃놀이", cat: "spot", cost: 600, memo: "주유패스 무료 입장", query: "Osaka Castle" },
+          { id: "7", day: 2, time: "18:30", title: "우메다 스카이빌딩 공중정원 일몰", cat: "spot", cost: 1500, memo: "360도 야경 감상", query: "Umeda Sky Building Osaka" },
+          { id: "8", day: 3, time: "08:30", title: "유니버설 스튜디오 재팬 (USJ)", cat: "spot", cost: 8900, memo: "슈퍼 닌텐도 월드 확약권", query: "Universal Studios Japan" }
+        ],
+        expenses: [
+          { id: "e1", day: 1, date: "2026-10-03", title: "라피트 왕복 티켓 (3인)", cat: "transport", local: 4470, base: 40610, pay: "card", payer: "나 (작성자)" },
+          { id: "e2", day: 1, date: "2026-10-03", title: "이치란 라멘 3인 점심", cat: "food", local: 4440, base: 40337, pay: "cash", payer: "민우" },
+          { id: "e3", day: 1, date: "2026-10-03", title: "편의점 간식 & 맥주 (로손)", cat: "food", local: 1560, base: 14172, pay: "transit_card", payer: "수진" },
+          { id: "e4", day: 1, date: "2026-10-03", title: "쿠시카츠 다루마 저녁", cat: "food", local: 9800, base: 89033, pay: "card", payer: "나 (작성자)" },
+          { id: "e5", day: 2, date: "2026-10-04", title: "규카츠 모토무라 점심 (3인)", cat: "food", local: 7800, base: 70863, pay: "card", payer: "나 (작성자)" },
+          { id: "e6", day: 2, date: "2026-10-04", title: "돈키호테 쇼핑 (의약품/과자)", cat: "shopping", local: 18500, base: 168072, pay: "card", payer: "나 (작성자)" }
+        ],
+        places: [
+          { id: "p1", name: "이치란 라멘 도톤보리 본관", cat: "food", rating: "4.6", menu: "천연 돈코츠 라멘", query: "Ichiran Dotonbori Main Building Osaka" },
+          { id: "p2", name: "규카츠 모토무라 난바점", cat: "food", rating: "4.8", menu: "살치살 규카츠 정식", query: "Gyukatsu Motomura Namba Osaka" },
+          { id: "p3", name: "쿠시카츠 다루마 도톤보리", cat: "food", rating: "4.4", menu: "원조 꼬치튀김 세트", query: "Kushikatsu Daruma Dotonbori" },
+          { id: "p4", name: "하루카스 300 전망대", cat: "spot", rating: "4.7", menu: "300m 통유리 야경", query: "Abeno Harukas 300" },
+          { id: "p5", name: "유니버설 스튜디오 재팬", cat: "spot", rating: "4.9", menu: "마리오 카트 투어", query: "Universal Studios Japan" },
+          { id: "p6", name: "우메다 스카이빌딩 공중정원", cat: "spot", rating: "4.5", menu: "루프탑 전망대", query: "Umeda Sky Building" }
+        ]
+      },
+      {
+        id: "trip_tokyo",
+        title: "도쿄 디즈니 & 시부야 쇼핑",
+        destination: "일본 도쿄",
+        flag: "🇯🇵",
+        currency: "JPY",
+        exchangeRate: 9.085,
+        startDate: "2026-12-23",
+        endDate: "2026-12-27",
+        totalBudget: 2000000,
+        participants: ["나 (작성자)", "친구1"],
+        itinerary: [
+          { id: "t1", day: 1, time: "14:00", title: "나리타 익스프레스 탑승 & 신주쿠 호텔 체크인", cat: "transport", cost: 3200, memo: "왕복 할인티켓", query: "Shinjuku Station Tokyo" }
+        ],
+        expenses: [],
+        places: []
+      }
+    ];
+
+    let trips = [];
+    let currentTripId = "";
+    let selectedItineraryDay = "all";
+    let selectedExpenseDay = "all";
+    let selectedExpenseCat = "all";
+
+    function loadAllTrips() {
+      const saved = localStorage.getItem("travellog_multi_trips_v4");
+      const activeId = localStorage.getItem("travellog_active_trip_id");
+      if (saved) {
+        try {
+          trips = JSON.parse(saved);
+        } catch(e) {
+          trips = JSON.parse(JSON.stringify(INITIAL_TRIPS));
+        }
+      } else {
+        trips = JSON.parse(JSON.stringify(INITIAL_TRIPS));
+      }
+      
+      if (!trips || trips.length === 0) {
+        trips = JSON.parse(JSON.stringify(INITIAL_TRIPS));
+      }
+
+      currentTripId = (activeId && trips.some(t => t.id === activeId)) ? activeId : trips[0].id;
+      saveAllTrips();
+    }
+
+    function saveAllTrips() {
+      localStorage.setItem("travellog_multi_trips_v4", JSON.stringify(trips));
+      localStorage.setItem("travellog_active_trip_id", currentTripId);
+    }
+
+    function getCurrentTrip() {
+      return trips.find(t => t.id === currentTripId) || trips[0];
+    }
+
+    function resetDefaultTrips() {
+      if (confirm("예제 여행 목록(오사카, 도쿄)으로 전체 초기화하시겠습니까?")) {
+        trips = JSON.parse(JSON.stringify(INITIAL_TRIPS));
+        currentTripId = trips[0].id;
+        saveAllTrips();
+        renderAll();
+        switchTab('itinerary');
+        alert("예제 데이터가 복원되었습니다.");
+      }
+    }
+
+    function getDaysCount(trip) {
+      const s = new Date(trip.startDate);
+      const e = new Date(trip.endDate);
+      return Math.max(1, Math.ceil(Math.abs(e - s) / (1000 * 60 * 60 * 24)) + 1);
+    }
+
+    function getDayStr(trip, dayIdx) {
+      const s = new Date(trip.startDate);
+      s.setDate(s.getDate() + (dayIdx - 1));
+      const days = ['일','월','화','수','목','금','토'];
+      return `Day ${dayIdx} (${s.getMonth()+1}.${s.getDate()} ${days[s.getDay()]})`;
+    }
+
+    function getDateStrForDay(trip, dayIdx) {
+      const s = new Date(trip.startDate);
+      s.setDate(s.getDate() + (dayIdx - 1));
+      return s.toISOString().split('T')[0];
+    }
+
+    function renderAll() {
+      const trip = getCurrentTrip();
+      renderHeader(trip);
+      renderItineraryDayChips(trip);
+      renderItinerary(trip);
+      renderExpenseDayChips(trip);
+      renderGroupedExpenses(trip);
+      renderPlaces(trip);
+      renderAnalytics(trip);
+      populateDropdowns(trip);
+      renderTripManagerList();
+    }
+
+    function renderHeader(trip) {
+      document.getElementById("headerFlagDest").textContent = `${trip.flag || '✈️'} ${trip.destination}`;
+      const s = trip.startDate.substring(5).replace('-', '.');
+      const e = trip.endDate.substring(5).replace('-', '.');
+      const count = getDaysCount(trip);
+      document.getElementById("headerDates").textContent = `${s} ~ ${e} (${count-1}박${count}일)`;
+      document.getElementById("headerTitle").textContent = trip.title;
+      document.getElementById("headerRate").textContent = `100 ${trip.currency} = ${(trip.exchangeRate * 100).toFixed(1)}원`;
+
+      const spentKRW = (trip.expenses || []).reduce((sum, x) => sum + (x.base || 0), 0);
+      const remainingKRW = trip.totalBudget - spentKRW;
+      const pct = Math.min(100, Math.round((spentKRW / trip.totalBudget) * 100)) || 0;
+      document.getElementById("headerRemaining").textContent = `${remainingKRW.toLocaleString()}원`;
+      document.getElementById("headerSpentPercent").textContent = `${pct}% 사용`;
+
+      const spentLocal = (trip.expenses || []).reduce((sum, x) => sum + (x.local || 0), 0);
+      document.getElementById("expenseTotalKRW").textContent = `${spentKRW.toLocaleString()}원`;
+      document.getElementById("expenseTotalLocal").textContent = `${spentLocal.toLocaleString()} ${trip.currency}`;
+      document.getElementById("expenseBudgetDisp").textContent = `${trip.totalBudget.toLocaleString()}원`;
+      document.getElementById("expenseRemainingDisp").textContent = `${remainingKRW.toLocaleString()}원`;
+    }
+
+    // --- TAB 1: ITINERARY ---
+    function renderItineraryDayChips(trip) {
+      const count = getDaysCount(trip);
+      let html = `<button class="chip ${selectedItineraryDay === 'all' ? 'active' : ''}" onclick="filterItineraryDay('all')">전체보기</button>`;
+      for (let i = 1; i <= count; i++) {
+        html += `<button class="chip ${selectedItineraryDay == i ? 'active' : ''}" onclick="filterItineraryDay(${i})">${getDayStr(trip, i)}</button>`;
+      }
+      document.getElementById("itineraryDayChipsRow").innerHTML = html;
+    }
+
+    function filterItineraryDay(d) {
+      selectedItineraryDay = d;
+      const trip = getCurrentTrip();
+      renderItineraryDayChips(trip);
+      renderItinerary(trip);
+    }
+
+    function renderItinerary(trip) {
+      let list = trip.itinerary || [];
+      if (selectedItineraryDay !== 'all') {
+        list = list.filter(x => x.day == selectedItineraryDay);
+        document.getElementById("itineraryCountLabel").textContent = `${getDayStr(trip, selectedItineraryDay)} (${list.length}개)`;
+      } else {
+        document.getElementById("itineraryCountLabel").textContent = `전체 일정 (${list.length}개)`;
+      }
+
+      const container = document.getElementById("itineraryCardList");
+      if (list.length === 0) {
+        container.innerHTML = `<div class="card" style="text-align:center; color:#94a3b8; padding:24px;">등록된 일정이 없습니다.<br><button onclick="openAddScheduleModal()" style="margin-top:8px; padding:6px 14px; background:#eff6ff; color:#2563eb; font-weight:700; border:none; border-radius:14px; cursor:pointer;">+ 일정 추가</button></div>`;
+        return;
+      }
+
+      list.sort((a,b) => (a.day !== b.day ? a.day - b.day : (a.time || '').localeCompare(b.time || '')));
+      let html = '';
+      list.forEach(item => {
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.query || item.title + ' ' + trip.destination)}`;
+        const krw = Math.round((item.cost || 0) * trip.exchangeRate);
+        const catBadge = item.cat === 'food' ? 'badge-rose' : (item.cat === 'spot' ? 'badge-purple' : (item.cat === 'transport' ? 'badge-green' : 'badge-amber'));
+        const catName = item.cat === 'food' ? '🍱 맛집' : (item.cat === 'spot' ? '🎟️ 관광' : (item.cat === 'transport' ? '🚇 교통' : '🏨 숙소'));
+
+        html += `
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:10px; font-weight:700; color:#94a3b8;">Day ${item.day}</span>
+                <span style="font-size:12px; font-weight:800; color:#2563eb;">${item.time || '시간미정'}</span>
+                <span class="badge ${catBadge}">${catName}</span>
+              </div>
+              <button onclick="deleteSchedule('${item.id}')" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:14px;">🗑️</button>
+            </div>
+            <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:4px;">${item.title}</div>
+            ${item.memo ? `<div style="font-size:12px; color:#475569; background:#f8fafc; padding:6px 10px; border-radius:8px; margin-bottom:6px;">💡 ${item.memo}</div>` : ''}
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:6px; font-size:11px;">
+              <span style="color:#64748b;">${item.cost ? `예상: <b>${item.cost.toLocaleString()} ${trip.currency}</b> (${krw.toLocaleString()}원)` : '비용 없음'}</span>
+              <div style="display:flex; gap:6px;">
+                <a href="${mapUrl}" target="_blank" style="padding:4px 8px; background:#fee2e2; color:#dc2626; font-weight:700; border-radius:8px; text-decoration:none;">구글지도 ↗</a>
+                <button onclick="quickAddExpense('${item.title}', ${item.cost || 0}, '${item.cat}', ${item.day})" style="padding:4px 8px; background:#dbeafe; color:#1d4ed8; font-weight:700; border-radius:8px; border:none; cursor:pointer;">가계부로</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    // --- TAB 2: EXPENSE (DAY BY DAY) ---
+    function renderExpenseDayChips(trip) {
+      const count = getDaysCount(trip);
+      let html = `<button class="chip ${selectedExpenseDay === 'all' ? 'active' : ''}" onclick="filterExpenseDay('all')">전체 날짜</button>`;
+      for (let i = 1; i <= count; i++) {
+        html += `<button class="chip ${selectedExpenseDay == i ? 'active' : ''}" onclick="filterExpenseDay(${i})">${getDayStr(trip, i)}</button>`;
+      }
+      document.getElementById("expenseDayChipsRow").innerHTML = html;
+    }
+
+    function filterExpenseDay(d) {
+      selectedExpenseDay = d;
+      const trip = getCurrentTrip();
+      renderExpenseDayChips(trip);
+      renderGroupedExpenses(trip);
+    }
+
+    function filterExpenseCat(cat, el) {
+      selectedExpenseCat = cat;
+      const chips = document.querySelectorAll('#expenseCategoryChipsRow .chip');
+      chips.forEach(c => c.classList.remove('active'));
+      if (el) el.classList.add('active');
+      renderGroupedExpenses(getCurrentTrip());
+    }
+
+    function renderGroupedExpenses(trip) {
+      const container = document.getElementById("expenseGroupedList");
+      let allExp = trip.expenses || [];
+      
+      if (selectedExpenseCat !== 'all') {
+        allExp = allExp.filter(x => x.cat === selectedExpenseCat);
+      }
+
+      const count = getDaysCount(trip);
+      let html = '';
+      let totalFound = 0;
+
+      for (let i = 1; i <= count; i++) {
+        if (selectedExpenseDay !== 'all' && selectedExpenseDay != i) continue;
+
+        const dayExpenses = allExp.filter(x => (x.day || 1) == i);
+        if (dayExpenses.length === 0 && selectedExpenseDay === 'all') continue;
+
+        totalFound += dayExpenses.length;
+        const daySubtotalKRW = dayExpenses.reduce((sum, e) => sum + (e.base || 0), 0);
+        const daySubtotalLocal = dayExpenses.reduce((sum, e) => sum + (e.local || 0), 0);
+
+        html += `
+          <div class="day-section-header">
+            <span>📅 ${getDayStr(trip, i)}</span>
+            <span>소계: ${daySubtotalKRW.toLocaleString()}원 (${daySubtotalLocal.toLocaleString()} ${trip.currency})</span>
+          </div>
+        `;
+
+        if (dayExpenses.length === 0) {
+          html += `<div class="card" style="text-align:center; color:#94a3b8; padding:16px;">이 날짜에 기록된 지출이 없습니다.</div>`;
+        } else {
+          dayExpenses.forEach(exp => {
+            const payStr = exp.pay === 'card' ? '💳 카드' : (exp.pay === 'transit_card' ? '🚃 교통카드' : '💵 현금');
+            html += `
+              <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div style="font-size:13px; font-weight:800; color:#0f172a;">${exp.title}</div>
+                  <div style="font-size:11px; color:#94a3b8; margin-top:2px;">${payStr} · 결제자: ${exp.payer || '나'}</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:14px; font-weight:800; color:#0f172a;">${exp.base.toLocaleString()}원</div>
+                  <div style="font-size:11px; font-weight:700; color:#2563eb;">${exp.local.toLocaleString()} ${trip.currency}</div>
+                  <button onclick="deleteExpense('${exp.id}')" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:10px;">삭제</button>
+                </div>
+              </div>
+            `;
+          });
+        }
+      }
+
+      if (totalFound === 0 && selectedExpenseDay === 'all') {
+        html = `<div class="card" style="text-align:center; color:#94a3b8; padding:24px;">지출 내역이 없습니다.<br><button onclick="openAddExpenseModal()" style="margin-top:8px; padding:6px 14px; background:#eff6ff; color:#2563eb; font-weight:700; border:none; border-radius:14px; cursor:pointer;">+ 지출 기록</button></div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    // --- TAB 3: PLACES ---
+    function renderPlaces(trip) {
+      const container = document.getElementById("placesCardList");
+      let html = '';
+      (trip.places || []).forEach(p => {
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.query || p.name + ' ' + trip.destination)}`;
+        html += `
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="badge badge-rose">${p.cat === 'food' ? '🍱 맛집' : '🎟️ 명소'}</span>
+                <span style="font-size:12px; font-weight:800; color:#d97706;">⭐ ${p.rating}</span>
+              </div>
+              <div style="font-size:14px; font-weight:800; color:#0f172a; margin-top:3px;">${p.name}</div>
+              <div style="font-size:11px; color:#e11d48; margin-top:2px;">🍴 ${p.menu || '인기 메뉴'}</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+              <a href="${mapUrl}" target="_blank" style="padding:6px 12px; background:#fee2e2; color:#dc2626; font-size:11px; font-weight:800; border-radius:10px; text-decoration:none;">구글 지도 ↗</a>
+              <button onclick="quickAddScheduleFromPlace('${p.name}', '${p.cat}')" style="padding:4px 8px; background:#f1f5f9; color:#475569; font-size:10px; font-weight:700; border-radius:8px; border:none; cursor:pointer;">+ 일정추가</button>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    // --- TAB 4: ANALYTICS ---
+    function renderAnalytics(trip) {
+      const totalBase = (trip.expenses || []).reduce((sum, e) => sum + (e.base || 0), 0);
+      const count = (trip.participants || []).length || 1;
+      const perPerson = Math.round(totalBase / count);
+
+      let pBadges = '';
+      (trip.participants || []).forEach(p => {
+        pBadges += `<span class="badge badge-green">${p}</span>`;
+      });
+      pBadges += `<button onclick="addParticipant()" style="font-size:11px; padding:2px 8px; background:#f1f5f9; border:none; border-radius:10px; cursor:pointer;">+ 친구추가</button>`;
+      document.getElementById("participantsBadges").innerHTML = pBadges;
+
+      const paidMap = {};
+      (trip.participants || []).forEach(p => paidMap[p] = 0);
+      (trip.expenses || []).forEach(e => {
+        const payer = e.payer || trip.participants[0];
+        paidMap[payer] = (paidMap[payer] || 0) + (e.base || 0);
+      });
+
+      let summaryHtml = `
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-weight:700;">
+          <span>1인당 부담금 (${count}명):</span>
+          <span style="color:#15803d; font-size:14px; font-weight:800;">${perPerson.toLocaleString()}원</span>
+        </div>
+        <div style="border-top:1px solid #dcfce7; padding-top:6px;">
+      `;
+      (trip.participants || []).forEach(p => {
+        const paid = paidMap[p] || 0;
+        const diff = paid - perPerson;
+        if (diff > 0) {
+          summaryHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>· <b>${p}</b> (${paid.toLocaleString()}원 결제)</span><span style="color:#2563eb; font-weight:700;">+${diff.toLocaleString()}원 받을 돈</span></div>`;
+        } else if (diff < 0) {
+          summaryHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>· <b>${p}</b> (${paid.toLocaleString()}원 결제)</span><span style="color:#dc2626; font-weight:700;">-${Math.abs(diff).toLocaleString()}원 보낼 돈</span></div>`;
+        } else {
+          summaryHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>· <b>${p}</b></span><span style="color:#94a3b8;">정산 완료 (0원)</span></div>`;
+        }
+      });
+      summaryHtml += '</div>';
+      document.getElementById("settlementSummaryBox").innerHTML = summaryHtml;
+
+      const catTotals = { food: 0, transport: 0, spot: 0, shopping: 0, stay: 0, other: 0 };
+      (trip.expenses || []).forEach(e => { catTotals[e.cat] = (catTotals[e.cat] || 0) + (e.base || 0); });
+      let catHtml = '';
+      const catNames = { food: '🍱 식비', transport: '🚇 교통', spot: '🎟️ 관광', shopping: '🛍️ 쇼핑', stay: '🏨 숙박', other: '💡 기타' };
+      for (const [k, v] of Object.entries(catTotals)) {
+        if (v > 0) {
+          const pct = Math.round((v / (totalBase || 1)) * 100);
+          catHtml += `
+            <div style="margin-bottom:6px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:2px; font-weight:700;">
+                <span>${catNames[k] || k}</span>
+                <span>${v.toLocaleString()}원 (${pct}%)</span>
+              </div>
+              <div style="height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
+                <div style="width:${pct}%; height:100%; background:#2563eb;"></div>
+              </div>
+            </div>
+          `;
+        }
+      }
+      document.getElementById("categoryBreakdownList").innerHTML = catHtml || '<span style="color:#94a3b8;">지출 내역이 없습니다.</span>';
+    }
+
+    // --- MULTI-TRIP MANAGER ---
+    function renderTripManagerList() {
+      const container = document.getElementById("tripManagerList");
+      let html = '';
+      trips.forEach(t => {
+        const isCurrent = t.id === currentTripId;
+        const spent = (t.expenses || []).reduce((sum, x) => sum + (x.base || 0), 0);
+        const pct = Math.min(100, Math.round((spent / (t.totalBudget || 1)) * 100)) || 0;
+        const count = getDaysCount(t);
+
+        html += `
+          <div class="card" style="border: 2px solid ${isCurrent ? '#2563eb' : '#e2e8f0'}; background: ${isCurrent ? '#f0f7ff' : '#fff'}; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <span class="badge ${isCurrent ? 'badge-blue' : 'badge-amber'}">${t.flag || '✈️'} ${t.destination}</span>
+                <span style="font-size:11px; color:#64748b; margin-left:4px;">${t.startDate} ~ ${t.endDate} (${count-1}박${count}일)</span>
+                <h4 style="font-size:15px; font-weight:800; color:#0f172a; margin-top:4px;">${t.title}</h4>
+              </div>
+              ${isCurrent ? '<span style="font-size:11px; font-weight:800; color:#2563eb; background:#dbeafe; padding:3px 8px; border-radius:10px;">현재 선택됨</span>' : ''}
+            </div>
+
+            <div style="margin: 8px 0; font-size:12px; color:#64748b; display:flex; justify-content:space-between;">
+              <span>지출: <b style="color:#0f172a;">${spent.toLocaleString()}원</b> / ${t.totalBudget.toLocaleString()}원</span>
+              <span>${pct}% 사용</span>
+            </div>
+            <div style="height:5px; background:#e2e8f0; border-radius:3px; overflow:hidden; margin-bottom:10px;">
+              <div style="width:${pct}%; height:100%; background:${pct > 90 ? '#ef4444' : '#2563eb'};"></div>
+            </div>
+
+            <div style="display:flex; gap:6px; justify-content:flex-end;">
+              ${!isCurrent ? `<button onclick="switchTrip('${t.id}')" style="padding:6px 12px; background:#2563eb; color:#fff; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">이 여행 열기</button>` : ''}
+              <button onclick="openEditTripModal('${t.id}')" style="padding:6px 10px; background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">✏️ 수정</button>
+              <button onclick="deleteTrip('${t.id}')" style="padding:6px 10px; background:#fee2e2; color:#dc2626; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">🗑️ 삭제</button>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function switchTrip(tripId) {
+      currentTripId = tripId;
+      selectedItineraryDay = "all";
+      selectedExpenseDay = "all";
+      saveAllTrips();
+      renderAll();
+      closeModal('modal-trip-manager');
+      switchTab('itinerary');
+    }
+
+    function deleteTrip(tripId) {
+      if (trips.length <= 1) {
+        return alert("최소 1개의 여행 계획은 유지되어야 합니다.");
+      }
+      const target = trips.find(t => t.id === tripId);
+      if (confirm(`'${target ? target.title : '이 여행'}' 계획을 정말 삭제하시겠습니까?`)) {
+        trips = trips.filter(t => t.id !== tripId);
+        if (currentTripId === tripId) {
+          currentTripId = trips[0].id;
+        }
+        saveAllTrips();
+        renderAll();
+      }
+    }
+
+    function populateDropdowns(trip) {
+      const count = getDaysCount(trip);
+      let dayOpts = '';
+      for (let i = 1; i <= count; i++) {
+        dayOpts += `<option value="${i}">${getDayStr(trip, i)}</option>`;
+      }
+      document.getElementById("schedInputDay").innerHTML = dayOpts;
+      document.getElementById("expInputDay").innerHTML = dayOpts;
+
+      let payerOpts = '';
+      (trip.participants || []).forEach(p => { payerOpts += `<option value="${p}">${p}</option>`; });
+      document.getElementById("expInputPayer").innerHTML = payerOpts;
+
+      document.getElementById("expFormCurr").textContent = trip.currency;
+      document.getElementById("schedFormCurr").textContent = trip.currency;
+      document.getElementById("modalCurrCode").textContent = trip.currency;
+      document.getElementById("modalRateDisp").textContent = `100 ${trip.currency} = ${(trip.exchangeRate * 100).toFixed(2)} KRW`;
+      document.getElementById("customRateVal").value = (trip.exchangeRate * 100).toFixed(1);
+    }
+
+    // Navigation
+    function switchTab(t) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById(`tab-${t}`);
+      const btn = document.getElementById(`nav-${t}`);
+      if (target) target.classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    // Modals
+    function openModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.add('active');
+    }
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.remove('active');
+    }
+    function closeModalIfOverlay(e, id) {
+      if (e.target.id === id) closeModal(id);
+    }
+
+    function openTripManagerModal() { renderTripManagerList(); openModal('modal-trip-manager'); }
+    function openAddExpenseModal() { populateDropdowns(getCurrentTrip()); openModal('modal-add-expense'); }
+    function openAddScheduleModal() { populateDropdowns(getCurrentTrip()); openModal('modal-add-schedule'); }
+    function openExchangeModal() { populateDropdowns(getCurrentTrip()); openModal('modal-exchange'); }
+    function openShareModal() { openModal('modal-share'); }
+    
+    function openNewTripModal() {
+      document.getElementById("editingTripId").value = "";
+      document.getElementById("tripModalHeading").textContent = "✈️ 새 여행 계획 만들기";
+      document.getElementById("tripSubmitBtn").textContent = "여행 생성하고 열기";
+      document.getElementById("newTripTitle").value = "오사카 가을 힐링 미식 여행";
+      document.getElementById("newTripBudget").value = 1500000;
+      document.getElementById("newTripStart").value = "2026-10-03";
+      document.getElementById("newTripEnd").value = "2026-10-08";
+      openModal('modal-new-trip');
+    }
+
+    function openEditTripModal(tripId) {
+      const target = trips.find(t => t.id === tripId);
+      if (!target) return;
+      document.getElementById("editingTripId").value = target.id;
+      document.getElementById("tripModalHeading").textContent = "✏️ 여행 계획 정보 수정";
+      document.getElementById("tripSubmitBtn").textContent = "수정사항 저장";
+      document.getElementById("newTripTitle").value = target.title;
+      document.getElementById("newTripBudget").value = target.totalBudget;
+      document.getElementById("newTripStart").value = target.startDate;
+      document.getElementById("newTripEnd").value = target.endDate;
+      openModal('modal-new-trip');
+    }
+
+    function openAddPlaceModal() {
+      const name = prompt("식당 또는 명소 이름을 입력하세요:");
+      if (name && name.trim()) {
+        const trip = getCurrentTrip();
+        trip.places = trip.places || [];
+        trip.places.push({ id: "p_" + Date.now(), name: name.trim(), cat: "food", rating: "4.5", menu: "대표 추천 메뉴", query: name.trim() + " " + trip.destination });
+        saveAllTrips();
+        renderPlaces(trip);
+      }
+    }
+
+    function handleFab() {
+      const activeNav = document.querySelector('.nav-btn.active');
+      if (activeNav && activeNav.id === 'nav-expense') openAddExpenseModal();
+      else if (activeNav && activeNav.id === 'nav-places') openAddPlaceModal();
+      else openAddScheduleModal();
+    }
+
+    function calcKrwLive() {
+      const trip = getCurrentTrip();
+      const local = parseFloat(document.getElementById("expInputLocal").value) || 0;
+      const krw = Math.round(local * trip.exchangeRate);
+      document.getElementById("expLiveKrw").textContent = `${krw.toLocaleString()}원`;
+    }
+
+    function submitExpense(e) {
+      e.preventDefault();
+      const trip = getCurrentTrip();
+      const local = parseFloat(document.getElementById("expInputLocal").value) || 0;
+      if (local <= 0) return alert("금액을 입력하세요.");
+      const title = document.getElementById("expInputTitle").value.trim();
+      const cat = document.getElementById("expInputCat").value;
+      const pay = document.getElementById("expInputPay").value;
+      const dayIdx = parseInt(document.getElementById("expInputDay").value) || 1;
+      const payer = document.getElementById("expInputPayer").value;
+
+      trip.expenses = trip.expenses || [];
+      trip.expenses.push({
+        id: "e_" + Date.now(),
+        day: dayIdx,
+        date: getDateStrForDay(trip, dayIdx),
+        title: title,
+        cat: cat,
+        local: local,
+        base: Math.round(local * trip.exchangeRate),
+        pay: pay,
+        payer: payer
+      });
+
+      saveAllTrips();
+      closeModal('modal-add-expense');
+      document.getElementById("expInputLocal").value = '';
+      document.getElementById("expInputTitle").value = '';
+      renderAll();
+    }
+
+    function submitSchedule(e) {
+      e.preventDefault();
+      const trip = getCurrentTrip();
+      const day = parseInt(document.getElementById("schedInputDay").value) || 1;
+      const time = document.getElementById("schedInputTime").value;
+      const title = document.getElementById("schedInputTitle").value.trim();
+      const cat = document.getElementById("schedInputCat").value;
+      const cost = parseFloat(document.getElementById("schedInputCost").value) || 0;
+      const memo = document.getElementById("schedInputMemo").value.trim();
+
+      trip.itinerary = trip.itinerary || [];
+      trip.itinerary.push({
+        id: "s_" + Date.now(),
+        day: day,
+        time: time,
+        title: title,
+        cat: cat,
+        cost: cost,
+        memo: memo,
+        query: title + " " + trip.destination
+      });
+
+      saveAllTrips();
+      closeModal('modal-add-schedule');
+      document.getElementById("schedInputTitle").value = '';
+      document.getElementById("schedInputCost").value = '';
+      document.getElementById("schedInputMemo").value = '';
+      renderAll();
+    }
+
+    function quickAddExpense(title, cost, cat, day) {
+      openAddExpenseModal();
+      document.getElementById("expInputTitle").value = title;
+      document.getElementById("expInputCat").value = cat;
+      document.getElementById("expInputLocal").value = cost || '';
+      document.getElementById("expInputDay").value = day || 1;
+      calcKrwLive();
+    }
+
+    function quickAddScheduleFromPlace(name, cat) {
+      openAddScheduleModal();
+      document.getElementById("schedInputTitle").value = name;
+      document.getElementById("schedInputCat").value = cat;
+    }
+
+    function deleteSchedule(id) {
+      if (confirm("이 일정을 삭제하시겠습니까?")) {
+        const trip = getCurrentTrip();
+        trip.itinerary = trip.itinerary.filter(x => x.id !== id);
+        saveAllTrips();
+        renderItinerary(trip);
+      }
+    }
+
+    function deleteExpense(id) {
+      if (confirm("이 지출 내역을 삭제하시겠습니까?")) {
+        const trip = getCurrentTrip();
+        trip.expenses = trip.expenses.filter(x => x.id !== id);
+        saveAllTrips();
+        renderAll();
+      }
+    }
+
+    function addParticipant() {
+      const name = prompt("함께 정산할 친구 이름을 입력하세요:");
+      if (name && name.trim()) {
+        const trip = getCurrentTrip();
+        trip.participants = trip.participants || [];
+        trip.participants.push(name.trim());
+        saveAllTrips();
+        renderAll();
+      }
+    }
+
+    function syncLiveRate() {
+      const trip = getCurrentTrip();
+      fetch(`https://open.er-api.com/v6/latest/${trip.currency}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d && d.rates && d.rates.KRW) {
+            trip.exchangeRate = d.rates.KRW;
+            saveAllTrips();
+            renderAll();
+            alert(`실시간 환율 적용 완료!\n100 ${trip.currency} = ${(trip.exchangeRate * 100).toFixed(2)} KRW`);
+            closeModal('modal-exchange');
+          }
+        })
+        .catch(e => {
+          alert(`실시간 환율: 100 ${trip.currency} = ${(trip.exchangeRate * 100).toFixed(2)} KRW`);
+        });
+    }
+
+    function applyCustomRate() {
+      const val = parseFloat(document.getElementById("customRateVal").value);
+      if (!val || val <= 0) return alert("올바른 환율을 입력하세요.");
+      const trip = getCurrentTrip();
+      trip.exchangeRate = val / 100;
+      (trip.expenses || []).forEach(e => e.base = Math.round((e.local || 0) * trip.exchangeRate));
+      saveAllTrips();
+      renderAll();
+      closeModal('modal-exchange');
+      alert(`환율이 100 ${trip.currency} = ${val}원으로 설정되었습니다.`);
+    }
+
+    function submitTripForm(e) {
+      e.preventDefault();
+      const editId = document.getElementById("editingTripId").value;
+      const title = document.getElementById("newTripTitle").value.trim();
+      const preset = document.getElementById("newTripPreset").value;
+      const budget = parseFloat(document.getElementById("newTripBudget").value) || 1500000;
+      const start = document.getElementById("newTripStart").value;
+      const end = document.getElementById("newTripEnd").value;
+
+      let dest = "일본 오사카";
+      let flag = "🇯🇵";
+      let curr = "JPY";
+      let rate = 9.085;
+
+      if (preset === 'JP-Tokyo') { dest = "일본 도쿄"; curr = "JPY"; rate = 9.085; }
+      else if (preset === 'JP-Fukuoka') { dest = "일본 후쿠오카"; curr = "JPY"; rate = 9.085; }
+      else if (preset === 'TW-Taipei') { dest = "대만 타이베이"; flag = "🇹🇼"; curr = "TWD"; rate = 42.5; }
+      else if (preset === 'VN-Danang') { dest = "베트남 다낭"; flag = "🇻🇳"; curr = "VND"; rate = 0.054; }
+      else if (preset === 'US-Hawaii') { dest = "미국 하와이"; flag = "🇺🇸"; curr = "USD"; rate = 1380.0; }
+
+      if (editId) {
+        const target = trips.find(t => t.id === editId);
+        if (target) {
+          target.title = title;
+          target.destination = dest;
+          target.flag = flag;
+          target.currency = curr;
+          target.exchangeRate = rate;
+          target.totalBudget = budget;
+          target.startDate = start;
+          target.endDate = end;
+        }
+        currentTripId = editId;
+      } else {
+        const newId = "trip_" + Date.now();
+        const newTrip = {
+          id: newId,
+          title: title,
+          destination: dest,
+          flag: flag,
+          currency: curr,
+          exchangeRate: rate,
+          startDate: start,
+          endDate: end,
+          totalBudget: budget,
+          participants: ["나 (작성자)", "친구1"],
+          itinerary: [],
+          expenses: [],
+          places: []
+        };
+        trips.unshift(newTrip);
+        currentTripId = newId;
+      }
+
+      saveAllTrips();
+      closeModal('modal-new-trip');
+      renderAll();
+      switchTab('itinerary');
+      alert(`'${title}' 여행이 저장되었습니다!`);
+    }
+
+    function openIPhoneModal() {
+      const url = window.location.href.startsWith('http') ? window.location.href : "https://ksy93-spec.github.io/travel/";
+      document.getElementById("lanAddressText").textContent = url;
+      document.getElementById("qrImageEl").src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`;
+      openModal('modal-iphone');
+    }
+
+    function copyAddress() {
+      const url = window.location.href.startsWith('http') ? window.location.href : "https://ksy93-spec.github.io/travel/";
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => alert("접속 주소가 복사되었습니다!"));
+      } else {
+        prompt("접속 주소:", url);
+      }
+    }
+
+    function shareOrCopyKakao() {
+      const trip = getCurrentTrip();
+      const totalBase = (trip.expenses || []).reduce((sum, e) => sum + (e.base || 0), 0);
+      const count = (trip.participants || []).length || 1;
+      const perPerson = Math.round(totalBase / count);
+
+      const paidMap = {};
+      (trip.participants || []).forEach(p => paidMap[p] = 0);
+      (trip.expenses || []).forEach(e => {
+        const payer = e.payer || trip.participants[0];
+        paidMap[payer] = (paidMap[payer] || 0) + (e.base || 0);
+      });
+
+      let text = `✈️ [${trip.title}]\n📍 여행지: ${trip.destination}\n📅 일정: ${trip.startDate} ~ ${trip.endDate}\n💱 기준 환율: 100 ${trip.currency} = ${(trip.exchangeRate * 100).toFixed(1)}원\n---------------------------\n💰 총 사용 금액: ${totalBase.toLocaleString()}원\n👥 1인당 부담금 (${count}명): ${perPerson.toLocaleString()}원\n\n📊 [정산 내역]\n`;
+      (trip.participants || []).forEach(p => {
+        const paid = paidMap[p] || 0;
+        const diff = paid - perPerson;
+        if (diff > 0) text += `· ${p}: +${diff.toLocaleString()}원 (받을 돈)\n`;
+        else if (diff < 0) text += `· ${p}: -${Math.abs(diff).toLocaleString()}원 (보낼 돈)\n`;
+        else text += `· ${p}: 정산 완료 (0원)\n`;
+      });
+      text += `\n🗺️ [주요 일정]\n`;
+      (trip.itinerary || []).slice(0, 5).forEach(item => {
+        text += `· Day ${item.day} ${item.time || ''}: ${item.title}\n`;
+      });
+      text += `\n📱 TravelLog 앱에서 작성됨`;
+
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => alert("카톡 공유용 정산 메시지가 복사되었습니다!\n카카오톡에 붙여넣기(Ctrl+V) 하세요."));
+      } else {
+        prompt("카카오톡 공유 텍스트:", text);
+      }
+    }
+
+    function exportJSON() {
+      const trip = getCurrentTrip();
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(trips, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `TravelLog_전체여행백업.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function importJSON(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (Array.isArray(imported)) {
+            trips = imported;
+            currentTripId = trips[0].id;
+          } else if (imported.title) {
+            trips = [imported];
+            currentTripId = trips[0].id;
+          }
+          saveAllTrips();
+          renderAll();
+          closeModal('modal-share');
+          alert(`여행 목록을 성공적으로 불러왔습니다!`);
+        } catch(err) {
+          alert("파일 오류: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function toggleFullscreen() {
+      const el = document.getElementById("appFrame");
+      el.classList.toggle("fullscreen");
+    }
+
+    // Register Service Worker for offline capability
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    // Startup
+    loadAllTrips();
+    renderAll();
+  </script>
+</body>
+</html>
