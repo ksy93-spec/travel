@@ -1,4 +1,4 @@
-const CACHE_NAME = 'travellog-cache-v4';
+const CACHE_NAME = 'travellog-cache-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -6,10 +6,10 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
+  self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
@@ -20,15 +20,39 @@ self.addEventListener('activate', (e) => {
           if (k !== CACHE_NAME) return caches.delete(k);
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
+// Network-First for HTML / navigation so updates appear immediately
 self.addEventListener('fetch', (e) => {
+  if (e.request.mode === 'navigate' || e.request.headers.get('accept')?.includes('text/html')) {
+    e.respondWith(
+      fetch(e.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(e.request).then((res) => res || caches.match('./index.html'));
+        })
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for other assets
   e.respondWith(
-    caches.match(e.request).then((res) => {
-      return res || fetch(e.request).catch(() => caches.match('./index.html'));
+    caches.match(e.request).then((cached) => {
+      const fetched = fetch(e.request).then((response) => {
+        if (response && response.status === 200) {
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, response.clone()));
+        }
+        return response;
+      }).catch(() => cached);
+      return cached || fetched;
     })
   );
 });

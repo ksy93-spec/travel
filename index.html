@@ -128,6 +128,7 @@
           </div>
         </div>
         <div style="display:flex; gap:6px;">
+          <button onclick="forceSyncLatestApp()" style="padding:6px 10px; border-radius:12px; border:1px solid #bfdbfe; background:#eff6ff; font-size:12px; font-weight:700; color:#2563eb; cursor:pointer;" title="최신 일정 및 데이터 동기화">🔄 동기화</button>
           <button onclick="openTripManagerModal()" style="padding:6px 10px; border-radius:12px; border:1px solid #e2e8f0; background:#f1f5f9; font-size:12px; font-weight:700; color:#334155; cursor:pointer;" title="여행 목록">✈️ 목록</button>
         </div>
       </div>
@@ -267,9 +268,14 @@
         <button onclick="closeModal('modal-trip-manager')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
       </div>
 
-      <button onclick="openNewTripModal(); closeModal('modal-trip-manager');" class="btn-submit" style="background:#10b981; margin-bottom:14px;">
-        ➕ 새 여행 계획 만들기
-      </button>
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <button onclick="openNewTripModal(); closeModal('modal-trip-manager');" class="btn-submit" style="flex:1; background:#10b981; margin:0; padding:10px; font-size:12px;">
+          ➕ 새 여행 만들기
+        </button>
+        <button onclick="resetToLatestOfficialTrip()" class="btn-submit" style="flex:1; background:#2563eb; margin:0; padding:10px; font-size:12px;">
+          🔄 10/4~8 오사카 최신일정 동기화
+        </button>
+      </div>
 
       <div id="tripManagerList"></div>
     </div>
@@ -1396,10 +1402,67 @@
       el.classList.toggle("fullscreen");
     }
 
-    // Register Service Worker for offline capability
+    function resetToLatestOfficialTrip() {
+      if (confirm("10/4~10/8 오사카(에스파시온 호텔 4박) 최신 일정 및 가계부로 새로고침할까요?")) {
+        const officialOsaka = JSON.parse(JSON.stringify(INITIAL_TRIPS[0]));
+        const idx = trips.findIndex(t => t.id === "trip_osaka");
+        if (idx >= 0) {
+          trips[idx] = officialOsaka;
+        } else {
+          trips.unshift(officialOsaka);
+        }
+        currentTripId = "trip_osaka";
+        saveAllTrips();
+        renderAll();
+        closeModal('modal-trip-manager');
+        alert("10/4 ~ 10/8 오사카 최신 일정이 성공적으로 동기화되었습니다!");
+      }
+    }
+
+    async function forceSyncLatestApp() {
+      if (confirm("서버에서 10/4~10/8 오사카 최신 일정 및 코드를 즉시 새로고침할까요?")) {
+        try {
+          if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+          }
+          if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            for (let reg of regs) {
+              await reg.unregister();
+            }
+          }
+          localStorage.removeItem("travellog_multi_trips_v4");
+          localStorage.removeItem("travellog_multi_trips_v5");
+          localStorage.removeItem("travellog_multi_trips_v6");
+          localStorage.removeItem("travellog_active_trip_id");
+        } catch(e) {
+          console.error(e);
+        }
+        window.location.href = window.location.origin + window.location.pathname + '?sync=' + Date.now();
+      }
+    }
+
+    // Register Service Worker for offline capability with auto-update detection
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js').then((reg) => {
+          reg.update();
+          reg.onupdatefound = () => {
+            const installing = reg.installing;
+            if (installing) {
+              installing.onstatechange = () => {
+                if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+                  window.location.reload();
+                }
+              };
+            }
+          };
+        }).catch(() => {});
+      });
+
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
       });
     }
 
